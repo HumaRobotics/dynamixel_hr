@@ -1,0 +1,31 @@
+HumaRobotics Dynamixel Python Library
+
+v0.1
+    - Low-level register access to dynamixel motors (MX28 and MX64)
+    - Management of chain of motors
+    - Discovery functions to locate and identify motors on the chain
+    - Fast access functionalities for multiple motors
+    - Configuration tools to modify motor settings
+    - Animation tools and APIs for recording and replaying positions and animations
+    - Resilient error management
+    - Thread-safe
+ 
+
+
+TODO v1.0
+    - Multi-motor management:
+        - Evaluation of differences between motors: 0.5 j/h
+        - Refactoring for multi-motor management (depending on amount of changes and number of motor types supported) 1-2 j/h
+    - API cleanup and documentation: 1 j/h
+    - Linux compatibility: 0.25 j/h
+    - Add missing registers API access: 0.25 j/h
+    - ROS bindings: 1 j/h
+    - Packaging: 0.5 j/h
+
+Total: around 5 j/h
+
+
+
+TODO v1.1
+    - GUI Tools improvements (2 j/h)
+    
