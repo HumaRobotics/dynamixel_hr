@@ -1,0 +1,10 @@
+INSTALLATION
+----------------
+
+Win 7:
+    - Install FTDI driver for USB2Dynamixel http://www.ftdichip.com/Drivers/CDM/CDM20830_Setup.exe (doc: http://www.ftdichip.com/Drivers/VCP.htm  )
+    - Follow instructions from http://support.robotis.com/en/software/dynamixel_sdk/usb2dynamixel/usb2dxl_windows.htm
+    - Set USB: Port 21, max baudrate, delay 1
+    - Install pyserial: https://pypi.python.org/packages/any/p/pyserial/pyserial-2.7.win32.exe#md5=21555387937eeb79126cde25abee4b35
+    
+    

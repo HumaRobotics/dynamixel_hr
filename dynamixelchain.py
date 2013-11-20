@@ -60,7 +60,6 @@ class DynamixelMotor:
             
         return (0,[DynamixelChain.CMD_WRITE_DATA,r.address]+value )
     
-
 class DynamixelMotorAXMX(DynamixelMotor):
     def __init__(self):
         DynamixelMotor.__init__(self)
@@ -101,10 +100,10 @@ class DynamixelMotorAXMX(DynamixelMotor):
 
 
 class DynamixelMotorAX12(DynamixelMotorAXMX):
+    model_name="AX12"
+    model_number=12
     def __init__(self):
         DynamixelMotorAXMX.__init__(self)
-        self.model_name="AX12"
-        self.model_number=12
 
         self.registers["cw_compliance_margin"]= DxlRegisterByte(0x1A,'rw')
         self.registers["ccw_compliance_margin"]=DxlRegisterByte(0x1B,'rw')
@@ -113,10 +112,10 @@ class DynamixelMotorAX12(DynamixelMotorAXMX):
         
 
 class DynamixelMotorMX28(DynamixelMotorAXMX):
+    model_name="MX28"
+    model_number=29
     def __init__(self):
         DynamixelMotorAXMX.__init__(self)
-        self.model_name="MX28"
-        self.model_number=29
 
         self.registers["d_gain"]=               DxlRegisterByte(0x1A,'rw')
         self.registers["i_gain"]=               DxlRegisterByte(0x1B,'rw')
@@ -124,10 +123,10 @@ class DynamixelMotorMX28(DynamixelMotorAXMX):
         
 
 class DynamixelMotorMX64(DynamixelMotorAXMX):
+    model_name="MX64"
+    model_number=310
     def __init__(self):
         DynamixelMotorAXMX.__init__(self)
-        self.model_name="MX64"
-        self.model_number=310
         
         self.registers["d_gain"]=               DxlRegisterByte(0x1A,'rw')
         self.registers["i_gain"]=               DxlRegisterByte(0x1B,'rw')
@@ -304,86 +303,91 @@ class DynamixelChain:
         for k,v in self.MODELS.items():
             if v==s: return k
         return None
+
+
         
-        
+    # Register Access
+
+    def get_reg(self,id,name):
+        m=self.motors[id]
+        reg=m.registers[name]
+        (esize,cmd)=m.getRegisterCmd(name)
+        (nid,data)=self.comm(id,cmd)
+        if len(data)!=esize:
+            raise DxlCommunicationException,'Motor ID %d did not retrieve expected register %s size %d: got %d bytes'%(id,name,esize,len(data)) 
+        return reg.fromdxl(data)
+
+    def set_reg(self,id,name,v):
+        m=self.motors[id]
+        reg=m.registers[name]
+        (esize,cmd)=m.setRegisterCmd(name,reg.todxl(v))
+        (nid,data)=self.comm(id,cmd)
+        if len(data)!=esize:
+            raise DxlCommunicationException,'Motor ID %d did not retrieve expected register %s size %d: got %d bytes'%(id,name,esize,len(data)) 
+
+    
         
     # Configuration load/save and probe functionalities
     
     def loadConfiguration(self,jsonconf):
-        with self.lock:
-            self.motors={}
-            c=json.loads(jsonconf)
-            self.configuration=c
-            if not "motors" in c.keys():
-                raise DxlConfigurationException,'Invalid configuration JSON string, no top "motors" key: %s'%str(self.configuration)
-            for m in c["motors"]:
-                if not "id" in m.keys():
-                    raise DxlConfigurationException,'Invalid configuration JSON string, no "id" field in motor: %s'%str(self.configuration)
-                id=m["id"]
-                try:
-                    self._ping(id)
-                except DxlCommunicationException:                                    
-                    raise DxlConfigurationException,'Could not find motor with ID %d'%id
-                
-                model=self._get_model(id)
-                
-                if "model_number" in m.keys():
-                    expected=m["model_number"]
-                    if model!=expected:
-                        raise DxlConfigurationException,'Wrong model number for ID %d: expected %d, got %d'%(id,model,expected)
-                if "model_name" in m.keys():
-                    expected=m["model_name"]
-                    if self.MODELS[model]!=expected:
-                        raise DxlConfigurationException,'Wrong model name for ID %d: expected %s, got %s'%(id,self.MODELS[model],expected)
-                        
-                logging.info("Found motor ID %d model %s (%d)"%(id,self.MODELS[model],model))
-                self.motors[id]=buildMotorFromModel(model)
+        self.motors={}
+        c=json.loads(jsonconf)
+        self.configuration=c
+        if not "motors" in c.keys():
+            raise DxlConfigurationException,'Invalid configuration JSON string, no top "motors" key: %s'%str(self.configuration)
+        for m in c["motors"]:
+            if not "id" in m.keys():
+                raise DxlConfigurationException,'Invalid configuration JSON string, no "id" field in motor: %s'%str(self.configuration)
+            id=m["id"]
+            try:
+                self._ping(id)
+            except DxlCommunicationException:                                    
+                raise DxlConfigurationException,'Could not find motor with ID %d'%id
+            
+            model=self._get_model(id)
+            
+            if "model_number" in m.keys():
+                expected=m["model_number"]
+                if model!=expected:
+                    raise DxlConfigurationException,'Wrong model number for ID %d: expected %d, got %d'%(id,model,expected)
+            if "model_name" in m.keys():
+                expected=m["model_name"]
+                if self.MODELS[model]!=expected:
+                    raise DxlConfigurationException,'Wrong model name for ID %d: expected %s, got %s'%(id,self.MODELS[model],expected)
+                    
+            logging.info("Found motor ID %d model %s (%d)"%(id,self.MODELS[model],model))
+            self.motors[id]=buildMotorFromModel(model)
                 
                 
             
     def probeConfiguration(self):
-        with self.lock:
-            self.motors={}
-            ids=self._ping_broadcast()
-            for id in ids:
-                model=self._get_model(id)
-                smodel="unknown"
-                if model in self.MODELS.keys():
-                    smodel=self.MODELS[model]
-                logging.info("Found motor ID %d model %s (%d)"%(id,smodel,model))
-                self.motors[id]=buildMotorFromModel(model)
+        self.motors={}
+        ids=self._ping_broadcast()
+        for id in ids:
+            model=self._get_model(id)
+            smodel="unknown"
+            if model in self.MODELS.keys():
+                smodel=self.MODELS[model]
+            logging.info("Found motor ID %d model %s (%d)"%(id,smodel,model))
+            self.motors[id]=buildMotorFromModel(model)
+
+
+    def tojsonstr(self):        
+        d={}
+        for (id,m) in self.motors.items():
+            dd={}
+            d[id]=dd
+            for (name,r) in m.registers.items():
+                dd[name]=self.get_reg(id,name)
+        return json.dumps(d, indent=4)
 
     def dumpAllRegisters(self):
-        with self.lock:
-            for id,m in self.motors.items():
-                for r in m.registers.keys():
-                    val=self._get_reg(id,r)
-                    print "Motor ID %d register %s: %s"%(id,r,val)
+        for id,m in self.motors.items():
+            for r in m.registers.keys():
+                val=self.get_reg(id,r)
+                print "Motor ID %d register %s: %s"%(id,r,val)
                         
-    def get_reg(self,id,reg):
-        with self.lock:
-            self._get_reg(id,reg)
             
-    def _get_reg(self,id,r):
-        m=self.motors[id]
-        reg=m.registers[r]
-        (esize,cmd)=m.getRegisterCmd(r)
-        (nid,data)=self._comm(id,cmd)
-        if len(data)!=esize:
-            raise DxlCommunicationException,'Motor ID %d did not retrieve expected register %s size %d: got %d bytes'%(id,r,esize,len(data)) 
-        return reg.fromdxl(data)
-
-    def set_reg(self,id,reg,v):
-        with self.lock:
-            self._set_reg(id,reg,v)
-            
-    def _set_reg(self,id,r,v):
-        m=self.motors[id]
-        reg=m.registers[r]
-        (esize,cmd)=m.setRegisterCmd(r,reg.todxl(v))
-        (nid,data)=self._comm(id,cmd)
-        if len(data)!=esize:
-            raise DxlCommunicationException,'Motor ID %d did not retrieve expected register %s size %d: got %d bytes'%(id,r,esize,len(data)) 
 
 if __name__ == "__main__":    
     chain=DynamixelChain("COM21", rate=1000000)
@@ -405,10 +409,12 @@ if __name__ == "__main__":
     #~ chain.loadConfiguration(conf)
     chain.dumpAllRegisters()
     chain.set_reg(1,"torque_enable",1)
+    chain.set_reg(1,"moving_speed",50)
     chain.set_reg(1,"goal_pos",100)
     time.sleep(1)
     chain.set_reg(1,"goal_pos",800)
     time.sleep(1)
     chain.set_reg(1,"torque_enable",0)
     
+    print chain.tojsonstr()
     chain.close()
