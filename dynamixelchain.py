@@ -11,7 +11,7 @@ import logging
 from threading import Lock
 import json
 import array
-
+from collections import OrderedDict
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -39,7 +39,7 @@ class DxlRegisterWord(DxlRegister):
 
 class DynamixelMotor:
     def __init__(self):
-        self.registers={}
+        self.registers=OrderedDict()
         
     def getRegisterCmd(self,name):
         if not name in self.registers.keys():
@@ -59,6 +59,9 @@ class DynamixelMotor:
             raise DxlConfigurationException,"Model %s register %s has size %d: passed size %d"%(self.model_name,name,r.size,len(value))
             
         return (0,[DynamixelChain.CMD_WRITE_DATA,r.address]+value )
+
+    def sort(self):
+        self.registers = OrderedDict( sorted(self.registers.iteritems(), key=lambda x: x[1].address) )
     
 class DynamixelMotorAXMX(DynamixelMotor):
     def __init__(self):
@@ -97,6 +100,8 @@ class DynamixelMotorAXMX(DynamixelMotor):
         self.registers["moving"]=               DxlRegisterByte(0x2E,'r')
         self.registers["lock"]=                 DxlRegisterByte(0x2F,'rw')
         self.registers["punch"]=                DxlRegisterWord(0x30,'rw')
+        
+        self.sort()
 
 
 class DynamixelMotorAX12(DynamixelMotorAXMX):
@@ -109,6 +114,8 @@ class DynamixelMotorAX12(DynamixelMotorAXMX):
         self.registers["ccw_compliance_margin"]=DxlRegisterByte(0x1B,'rw')
         self.registers["cw_compliance_slope"]=  DxlRegisterByte(0x1C,'rw')
         self.registers["ccw_compliance_slope"]= DxlRegisterByte(0x1D,'rw')
+
+        self.sort()
         
 
 class DynamixelMotorMX28(DynamixelMotorAXMX):
@@ -121,6 +128,7 @@ class DynamixelMotorMX28(DynamixelMotorAXMX):
         self.registers["i_gain"]=               DxlRegisterByte(0x1B,'rw')
         self.registers["p_gain"]=               DxlRegisterByte(0x1C,'rw')
         
+        self.sort()
 
 class DynamixelMotorMX64(DynamixelMotorAXMX):
     model_name="MX64"
@@ -132,6 +140,7 @@ class DynamixelMotorMX64(DynamixelMotorAXMX):
         self.registers["i_gain"]=               DxlRegisterByte(0x1B,'rw')
         self.registers["p_gain"]=               DxlRegisterByte(0x1C,'rw')
         
+        self.sort()
         
 
 
@@ -327,40 +336,9 @@ class DynamixelChain:
 
     
         
-    # Configuration load/save and probe functionalities
+    # Configuration get/set functionalities
     
-    def loadConfiguration(self,jsonconf):
-        self.motors={}
-        c=json.loads(jsonconf)
-        self.configuration=c
-        if not "motors" in c.keys():
-            raise DxlConfigurationException,'Invalid configuration JSON string, no top "motors" key: %s'%str(self.configuration)
-        for m in c["motors"]:
-            if not "id" in m.keys():
-                raise DxlConfigurationException,'Invalid configuration JSON string, no "id" field in motor: %s'%str(self.configuration)
-            id=m["id"]
-            try:
-                self._ping(id)
-            except DxlCommunicationException:                                    
-                raise DxlConfigurationException,'Could not find motor with ID %d'%id
-            
-            model=self._get_model(id)
-            
-            if "model_number" in m.keys():
-                expected=m["model_number"]
-                if model!=expected:
-                    raise DxlConfigurationException,'Wrong model number for ID %d: expected %d, got %d'%(id,model,expected)
-            if "model_name" in m.keys():
-                expected=m["model_name"]
-                if self.MODELS[model]!=expected:
-                    raise DxlConfigurationException,'Wrong model name for ID %d: expected %s, got %s'%(id,self.MODELS[model],expected)
-                    
-            logging.info("Found motor ID %d model %s (%d)"%(id,self.MODELS[model],model))
-            self.motors[id]=buildMotorFromModel(model)
-                
-                
-            
-    def probeConfiguration(self):
+    def get_motor_list(self):
         self.motors={}
         ids=self._ping_broadcast()
         for id in ids:
@@ -372,49 +350,96 @@ class DynamixelChain:
             self.motors[id]=buildMotorFromModel(model)
 
 
-    def tojsonstr(self):        
-        d={}
+    def get_configuration(self):
+        self.get_motor_list()
+        d=OrderedDict()
         for (id,m) in self.motors.items():
-            dd={}
+            dd=OrderedDict()
             d[id]=dd
             for (name,r) in m.registers.items():
                 dd[name]=self.get_reg(id,name)
-        return json.dumps(d, indent=4)
+        return dd
+        
+    def set_configuration(self,conf):
+        d={}
+        self.get_motor_list()
+        for id in conf.keys():
+            sid=id
+            iid=int(sid)
+            if iid not in self.motors.keys(): raise DxlConfigurationException,"Cannot find motor ID %d to be configured"%iid
+            motor=self.motors[iid]
+            for (name,val) in conf[sid].items():
+                if name not in motor.registers.keys(): raise DxlConfigurationException,"Cannot configure missing register %s on motor ID %d"%(name,iid)                    
+                reg=motor.registers[name]
+                current=self.get_reg(iid,name)
+                if current==val: continue
+                # Value has to be changed
+                if not 'w' in reg.mode: # read only: generate error if setting is EEPROM
+                    if reg.eeprom: raise DxlConfigurationException,"Cannot change EEPROM register %s from %d to %d on motor ID %d"%(name,current,val,iid)
+                    else: pass
+                else:
+                    if reg.eeprom:
+                        logging.info( "Changed (EEPROM register %s from %d to %d on motor ID %d"%(name,current,val,iid) )
+                    self.set_reg(iid,name,val) # if writable set it
 
-    def dumpAllRegisters(self):
-        for id,m in self.motors.items():
-            for r in m.registers.keys():
-                val=self.get_reg(id,r)
-                print "Motor ID %d register %s: %s"%(id,r,val)
-                        
-            
+    def dump(self):
+        conf=self.get_configuration()
+        print json.dumps(conf,indent=4,sort_keys=False)
+
+
 
 if __name__ == "__main__":    
     chain=DynamixelChain("COM21", rate=1000000)
-    chain.reopen()
-    chain.probeConfiguration()
+    #~ chain.reopen()
+    chain.dump()
 
     conf="""
-
-{   "motors":
-    [
-        { "id":1 , "name":"pan" , "model_number":310},
-        { "id":2 , "name":"tilt1", "model_name":"MX64"},
-        { "id":3 , "name":"tilt2", "model_name":"MX28"},
-        { "id":4 , "name":"tilt3", "model_name":"MX28"},
-        { "id":5 , "name":"orient", "model_name":"MX28"}
-    ]
+{
+    "2": {
+        "alarm_shutdown": 36, 
+        "lock": 0, 
+        "max_torque": 1023, 
+        "goal_pos": 200, 
+        "present_load": 104, 
+        "id": 2, 
+        "ccw_compliance_margin": 1, 
+        "firmware": 24, 
+        "alarm_led": 36, 
+        "model_number": 12, 
+        "baud_rate": 1, 
+        "present_temp": 39, 
+        "torque_enable": 1, 
+        "moving_speed": 50, 
+        "led": 0, 
+        "torque_limit": 1023, 
+        "status_return_level": 2, 
+        "ccw_compliance_slope": 32, 
+        "registered": 0, 
+        "punch": 32, 
+        "cw_compliance_margin": 1, 
+        "high_temp_limit": 70, 
+        "moving": 0, 
+        "ccw_angle_limit": 1023, 
+        "low_voltage_limit": 60, 
+        "return_delay": 250, 
+        "high_voltage_limit": 140, 
+        "cw_compliance_slope": 32, 
+        "present_speed": 52, 
+        "present_voltage": 123, 
+        "present_position": 773, 
+        "cw_angle_limit": 0
+    }
 }
 """    
     #~ chain.loadConfiguration(conf)
-    chain.dumpAllRegisters()
-    chain.set_reg(1,"torque_enable",1)
-    chain.set_reg(1,"moving_speed",50)
-    chain.set_reg(1,"goal_pos",100)
-    time.sleep(1)
-    chain.set_reg(1,"goal_pos",800)
-    time.sleep(1)
-    chain.set_reg(1,"torque_enable",0)
+    chain.set_configuration(json.loads(conf))
+    #~ chain.set_reg(1,"torque_enable",1)
+    #~ chain.set_reg(1,"moving_speed",50)
+    #~ chain.set_reg(1,"goal_pos",100)
+    #~ time.sleep(1)
+    #~ chain.set_reg(1,"goal_pos",800)
+    #~ time.sleep(1)
+    #~ chain.set_reg(1,"torque_enable",0)
     
-    print chain.tojsonstr()
+    chain.dump()
     chain.close()
