@@ -27,7 +27,7 @@ class DxlRegister():
         self.mode=mode
         self.eeprom=eeprom
         self.fromdxl=fromdxl
-        self.todxl=todxl        
+        self.todxl=todxl
 
 class DxlRegisterByte(DxlRegister):
     def __init__(self,address,mode='r',eeprom=False):
@@ -50,7 +50,7 @@ class DynamixelMotor:
         return (r.size,[DynamixelChain.CMD_READ_DATA,r.address,r.size])
 
     def setRegisterCmd(self,name,value):
-        if not name in self.registers.key():
+        if not name in self.registers.keys():
             raise DxlConfigurationException,"Model %s has no register called %s"%(self.model_name,name)
         r=self.registers[name]
         if not 'w' in r.mode:
@@ -58,16 +58,13 @@ class DynamixelMotor:
         if r.size!=len(value):
             raise DxlConfigurationException,"Model %s register %s has size %d: passed size %d"%(self.model_name,name,r.size,len(value))
             
-        return (0,"".join([DynamixelChain.CMD_WRITE_DATA,r.address],value) )
+        return (0,[DynamixelChain.CMD_WRITE_DATA,r.address]+value )
     
 
-
-class DynamixelMotorMX64(DynamixelMotor):
+class DynamixelMotorAXMX(DynamixelMotor):
     def __init__(self):
         DynamixelMotor.__init__(self)
-        self.model_name="MX64"
-        self.model_number=310
-        
+
         self.registers["model_number"]=         DxlRegisterWord(0x00,'r',eeprom=True)
         self.registers["firmware"]=             DxlRegisterByte(0x02,'r',eeprom=True)
         self.registers["id"]=                   DxlRegisterByte(0x03,'rw',eeprom=True)
@@ -82,12 +79,12 @@ class DynamixelMotorMX64(DynamixelMotor):
         self.registers["status_return_level"]=  DxlRegisterByte(0x10,'rw',eeprom=True)
         self.registers["alarm_led"]=            DxlRegisterByte(0x11,'rw',eeprom=True)
         self.registers["alarm_shutdown"]=       DxlRegisterByte(0x12,'rw',eeprom=True)
-        
+
         self.registers["torque_enable"]=        DxlRegisterByte(0x18,'rw')
         self.registers["led"]=                  DxlRegisterByte(0x19,'rw')
-        self.registers["d_gain"]=               DxlRegisterByte(0x1A,'rw')
-        self.registers["i_gain"]=               DxlRegisterByte(0x1B,'rw')
-        self.registers["p_gain"]=               DxlRegisterByte(0x1C,'rw')
+        
+        # Here goes compliance or PID or DIP
+        
         self.registers["goal_pos"]=             DxlRegisterWord(0x1E,'rw')
         self.registers["moving_speed"]=         DxlRegisterWord(0x20,'rw')
         self.registers["torque_limit"]=         DxlRegisterWord(0x22,'rw')
@@ -101,47 +98,41 @@ class DynamixelMotorMX64(DynamixelMotor):
         self.registers["moving"]=               DxlRegisterByte(0x2E,'r')
         self.registers["lock"]=                 DxlRegisterByte(0x2F,'rw')
         self.registers["punch"]=                DxlRegisterWord(0x30,'rw')
-        
-        
-class DynamixelMotorMX28(DynamixelMotor):
+
+
+class DynamixelMotorAX12(DynamixelMotorAXMX):
     def __init__(self):
-        DynamixelMotor.__init__(self)
+        DynamixelMotorAXMX.__init__(self)
+        self.model_name="AX12"
+        self.model_number=12
+
+        self.registers["cw_compliance_margin"]= DxlRegisterByte(0x1A,'rw')
+        self.registers["ccw_compliance_margin"]=DxlRegisterByte(0x1B,'rw')
+        self.registers["cw_compliance_slope"]=  DxlRegisterByte(0x1C,'rw')
+        self.registers["ccw_compliance_slope"]= DxlRegisterByte(0x1D,'rw')
+        
+
+class DynamixelMotorMX28(DynamixelMotorAXMX):
+    def __init__(self):
+        DynamixelMotorAXMX.__init__(self)
         self.model_name="MX28"
         self.model_number=29
 
-        self.registers["model_number"]=         DxlRegisterWord(0x00,'r',eeprom=True)
-        self.registers["firmware"]=             DxlRegisterByte(0x02,'r',eeprom=True)
-        self.registers["id"]=                   DxlRegisterByte(0x03,'rw',eeprom=True)
-        self.registers["baud_rate"]=            DxlRegisterByte(0x04,'rw',eeprom=True)
-        self.registers["return_delay"]=         DxlRegisterByte(0x05,'rw',eeprom=True)
-        self.registers["cw_angle_limit"]=       DxlRegisterWord(0x06,'rw',eeprom=True)
-        self.registers["ccw_angle_limit"]=      DxlRegisterWord(0x08,'rw',eeprom=True)
-        self.registers["high_temp_limit"]=      DxlRegisterByte(0x0b,'rw',eeprom=True)
-        self.registers["low_voltage_limit"]=    DxlRegisterByte(0x0c,'rw',eeprom=True)
-        self.registers["high_voltage_limit"]=   DxlRegisterByte(0x0d,'rw',eeprom=True)
-        self.registers["max_torque"]=           DxlRegisterWord(0x0e,'rw',eeprom=True)
-        self.registers["status_return_level"]=  DxlRegisterByte(0x10,'rw',eeprom=True)
-        self.registers["alarm_led"]=            DxlRegisterByte(0x11,'rw',eeprom=True)
-        self.registers["alarm_shutdown"]=       DxlRegisterByte(0x12,'rw',eeprom=True)
-
-        self.registers["torque_enable"]=        DxlRegisterByte(0x18,'rw')
-        self.registers["led"]=                  DxlRegisterByte(0x19,'rw')
         self.registers["d_gain"]=               DxlRegisterByte(0x1A,'rw')
         self.registers["i_gain"]=               DxlRegisterByte(0x1B,'rw')
         self.registers["p_gain"]=               DxlRegisterByte(0x1C,'rw')
-        self.registers["goal_pos"]=             DxlRegisterWord(0x1E,'rw')
-        self.registers["moving_speed"]=         DxlRegisterWord(0x20,'rw')
-        self.registers["torque_limit"]=         DxlRegisterWord(0x22,'rw')
-        self.registers["present_position"]=     DxlRegisterWord(0x24,'r')
-        self.registers["present_speed"]=        DxlRegisterWord(0x26,'r')
-        self.registers["present_load"]=         DxlRegisterWord(0x28,'r')
+        
 
-        self.registers["present_voltage"]=      DxlRegisterByte(0x2A,'r')
-        self.registers["present_temp"]=         DxlRegisterByte(0x2B,'r')
-        self.registers["registered"]=           DxlRegisterByte(0x2C,'r')
-        self.registers["moving"]=               DxlRegisterByte(0x2E,'r')
-        self.registers["lock"]=                 DxlRegisterByte(0x2F,'rw')
-        self.registers["punch"]=                DxlRegisterWord(0x30,'rw')
+class DynamixelMotorMX64(DynamixelMotorAXMX):
+    def __init__(self):
+        DynamixelMotorAXMX.__init__(self)
+        self.model_name="MX64"
+        self.model_number=310
+        
+        self.registers["d_gain"]=               DxlRegisterByte(0x1A,'rw')
+        self.registers["i_gain"]=               DxlRegisterByte(0x1B,'rw')
+        self.registers["p_gain"]=               DxlRegisterByte(0x1C,'rw')
+        
         
 
 
@@ -150,7 +141,9 @@ class DynamixelMotorMX28(DynamixelMotor):
 def buildMotorFromModel(modelnumber):
     if modelnumber not in DynamixelChain.MODELS.keys():
         raise DxlConfigurationException,"Could not create Dynamixel motor for non-existing model number %d"%modelnumber
-    if modelnumber==29:
+    if modelnumber==12:
+        return DynamixelMotorAX12()
+    elif modelnumber==29:
         return DynamixelMotorMX28()
     elif modelnumber==310:
         return DynamixelMotorMX64()
@@ -176,7 +169,7 @@ class DynamixelChain:
     CMD_RESET      = 0x06
     CMD_SYNC_WRITE = 0x83
     
-    MODELS={29:"MX28",310:"MX64"}
+    MODELS={12:"AX12",29:"MX28",310:"MX64"}
 
     def __init__(self, portname,rate=57142,timeout=0.04):
         """
@@ -354,26 +347,46 @@ class DynamixelChain:
             ids=self._ping_broadcast()
             for id in ids:
                 model=self._get_model(id)
-                logging.info("Found motor ID %d model %s (%d)"%(id,self.MODELS[model],model))
+                smodel="unknown"
+                if model in self.MODELS.keys():
+                    smodel=self.MODELS[model]
+                logging.info("Found motor ID %d model %s (%d)"%(id,smodel,model))
                 self.motors[id]=buildMotorFromModel(model)
 
     def dumpAllRegisters(self):
         with self.lock:
             for id,m in self.motors.items():
                 for r in m.registers.keys():
-                    (esize,cmd)=m.getRegisterCmd(r)
-                    (nid,data)=self._comm(id,cmd)
-                    if len(data)!=esize:
-                        raise DxlCommunicationException,'Motor ID %d did not retrieve expected register %s size %d: got %d bytes'%(id,r,esize,len(data)) 
-                    reg=m.registers[r]
-                    display=reg.fromdxl(data)
-                    print "Motor ID %d register %s: %s"%(id,r,display)
+                    val=self._get_reg(id,r)
+                    print "Motor ID %d register %s: %s"%(id,r,val)
                         
+    def get_reg(self,id,reg):
+        with self.lock:
+            self._get_reg(id,reg)
             
+    def _get_reg(self,id,r):
+        m=self.motors[id]
+        reg=m.registers[r]
+        (esize,cmd)=m.getRegisterCmd(r)
+        (nid,data)=self._comm(id,cmd)
+        if len(data)!=esize:
+            raise DxlCommunicationException,'Motor ID %d did not retrieve expected register %s size %d: got %d bytes'%(id,r,esize,len(data)) 
+        return reg.fromdxl(data)
+
+    def set_reg(self,id,reg,v):
+        with self.lock:
+            self._set_reg(id,reg,v)
             
+    def _set_reg(self,id,r,v):
+        m=self.motors[id]
+        reg=m.registers[r]
+        (esize,cmd)=m.setRegisterCmd(r,reg.todxl(v))
+        (nid,data)=self._comm(id,cmd)
+        if len(data)!=esize:
+            raise DxlCommunicationException,'Motor ID %d did not retrieve expected register %s size %d: got %d bytes'%(id,r,esize,len(data)) 
 
 if __name__ == "__main__":    
-    chain=DynamixelChain("COM21", rate=3000000)
+    chain=DynamixelChain("COM21", rate=1000000)
     chain.reopen()
     chain.probeConfiguration()
 
@@ -389,6 +402,13 @@ if __name__ == "__main__":
     ]
 }
 """    
-    chain.loadConfiguration(conf)
+    #~ chain.loadConfiguration(conf)
     chain.dumpAllRegisters()
+    chain.set_reg(1,"torque_enable",1)
+    chain.set_reg(1,"goal_pos",100)
+    time.sleep(1)
+    chain.set_reg(1,"goal_pos",800)
+    time.sleep(1)
+    chain.set_reg(1,"torque_enable",0)
+    
     chain.close()
