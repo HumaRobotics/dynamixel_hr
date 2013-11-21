@@ -16,11 +16,16 @@ from collections import OrderedDict
 logging.basicConfig(level=logging.DEBUG)
 
 
-class DxlConfigurationException(Exception):    pass
-class DxlCommunicationException(Exception):    pass
+class DxlException(Exception):                    pass
+class DxlConfigurationException(DxlException):    pass
+class DxlCommunicationException(DxlException):    pass
 
+
+        
+        
 
 class DxlRegister():
+    
     def __init__(self,address,size,mode='r',eeprom=False,fromdxl= lambda x: x,todxl= lambda x: x):
         self.address=address
         self.size=size
@@ -37,9 +42,40 @@ class DxlRegisterWord(DxlRegister):
     def __init__(self,address,mode='r',eeprom=False):
         DxlRegister.__init__(self,address,2,mode,eeprom,fromdxl=lambda x:x[0]+(x[1]<<8),todxl=lambda x:[x&0xFF,(x>>8)&0xFF] )
 
-class DynamixelMotor:
+
+
+
+
+class ModelRegisteringMetaclass(type):
+    def __new__(cls, name, bases, attrs):
+        inst=type.__new__(cls, name,bases,attrs)        
+        DynamixelMotor.registerModel(inst.model_number,inst)        
+        return inst
+        
+
+
+
+class DynamixelMotor(object):
+    DxlModels={}
+    
     def __init__(self):
-        self.registers=OrderedDict()
+        self.registers=OrderedDict()        
+    
+    
+    @classmethod
+    def registerModel(cls,model_number,model_cls):
+        if model_number not in cls.DxlModels.keys():
+            cls.DxlModels[model_number]=model_cls
+            print "Registered models %d: "%model_number+str(model_cls)
+
+    @classmethod
+    def instantiateMotor(cls,model_number):
+        if not model_number in cls.DxlModels.keys():
+            raise DxlConfigurationException,"Cannot instantiate non-existing motor model %d "%(name,model_number)
+        mcls=cls.DxlModels[model_number]
+        return mcls()
+        
+
         
     def getRegisterCmd(self,name):
         if not name in self.registers.keys():
@@ -105,8 +141,10 @@ class DynamixelMotorAXMX(DynamixelMotor):
 
 
 class DynamixelMotorAX12(DynamixelMotorAXMX):
+    __metaclass__=ModelRegisteringMetaclass
     model_name="AX12"
     model_number=12
+    
     def __init__(self):
         DynamixelMotorAXMX.__init__(self)
 
@@ -119,8 +157,10 @@ class DynamixelMotorAX12(DynamixelMotorAXMX):
         
 
 class DynamixelMotorMX28(DynamixelMotorAXMX):
+    __metaclass__=ModelRegisteringMetaclass
     model_name="MX28"
     model_number=29
+
     def __init__(self):
         DynamixelMotorAXMX.__init__(self)
 
@@ -131,8 +171,10 @@ class DynamixelMotorMX28(DynamixelMotorAXMX):
         self.sort()
 
 class DynamixelMotorMX64(DynamixelMotorAXMX):
+    __metaclass__=ModelRegisteringMetaclass
     model_name="MX64"
     model_number=310
+
     def __init__(self):
         DynamixelMotorAXMX.__init__(self)
         
@@ -143,23 +185,6 @@ class DynamixelMotorMX64(DynamixelMotorAXMX):
         self.sort()
         
 
-
-
-
-def buildMotorFromModel(modelnumber):
-    if modelnumber not in DynamixelChain.MODELS.keys():
-        raise DxlConfigurationException,"Could not create Dynamixel motor for non-existing model number %d"%modelnumber
-    if modelnumber==12:
-        return DynamixelMotorAX12()
-    elif modelnumber==29:
-        return DynamixelMotorMX28()
-    elif modelnumber==310:
-        return DynamixelMotorMX64()
-    else:
-        raise DxlConfigurationException,"Could not create Dynamixel motor for non-implemented model number %d"%modelnumber
-        
-        
-        
         
         
 class DynamixelChain:
@@ -177,7 +202,6 @@ class DynamixelChain:
     CMD_RESET      = 0x06
     CMD_SYNC_WRITE = 0x83
     
-    MODELS={12:"AX12",29:"MX28",310:"MX64"}
 
     def __init__(self, portname,rate=57142,timeout=0.04):
         """
@@ -307,13 +331,6 @@ class DynamixelChain:
         data=self._read(id,0,2)
         return (data[1]<<8)+data[0]
 
-
-    def modelFromString(self,s):
-        for k,v in self.MODELS.items():
-            if v==s: return k
-        return None
-
-
         
     # Register Access
 
@@ -344,11 +361,10 @@ class DynamixelChain:
         ids=self._ping_broadcast()
         for id in ids:
             model=self._get_model(id)
-            smodel="unknown"
-            if model in self.MODELS.keys():
-                smodel=self.MODELS[model]
-            logging.info("Found motor ID %d model %s (%d)"%(id,smodel,model))
-            self.motors[id]=buildMotorFromModel(model)
+            logging.info("Found motor ID %d model %d"%(id,model))
+            m=DynamixelMotor.instantiateMotor(model)
+            self.motors[id]=m
+            logging.info("Instantiated motor ID %d model %s (%d)"%(id,m.model_name,model))
 
 
     def get_configuration(self):
@@ -431,7 +447,7 @@ if __name__ == "__main__":
         "punch": 32
     }
 }
-"""    
+"""
     #~ chain.loadConfiguration(conf)
     #~ chain.set_configuration(json.loads(conf))
     time.sleep(1)
