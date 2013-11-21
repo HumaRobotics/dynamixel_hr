@@ -4,7 +4,7 @@
 
 # WINDOWS WARNING: For best performance, parameters of the COM Port should be set to maximum baud rate, and 1ms delay (Device Manager, COM Ports, properties, advanced)
 
-from dxlchain import *
+from dxl import *
 
 import sys
 import serial
@@ -80,7 +80,7 @@ def testAX12(chain):
     chain.set_reg(1,"torque_enable",0)
 
 if __name__ == "__main__":    
-    chain=DxlChain("COM21", rate=3000000)
+    chain=dxlchain.DxlChain("COM21", rate=3000000)
     #~ testAX12(chain)
     testArm(chain)
     chain.close()

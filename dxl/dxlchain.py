@@ -220,6 +220,7 @@ class DxlChain:
                     if reg.eeprom: raise DxlConfigurationException,"Invalid EEPROM value in motor ID %d register %s: current=%d expected=%d"%(iid,name,current,val)
                     else: pass
 
+            # Check/Set all registers
             for (name,val) in conf[sid].items():
                 if name not in motor.registers.keys(): raise DxlConfigurationException,"Cannot configure missing register %s on motor ID %d"%(name,iid)                    
                 reg=motor.registers[name]
