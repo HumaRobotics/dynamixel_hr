@@ -85,14 +85,14 @@ class DxlMotorAXMX(DxlMotor):
         self.registers["alarm_led"]=            DxlRegisterByte(0x11,'rw',eeprom=True)
         self.registers["alarm_shutdown"]=       DxlRegisterByte(0x12,'rw',eeprom=True)
 
-        self.registers["torque_enable"]=        DxlRegisterByte(0x18,'rw')
-        self.registers["led"]=                  DxlRegisterByte(0x19,'rw')
+        self.registers["torque_enable"]=        DxlRegisterByte(0x18,'rw',range=[0,1])
+        self.registers["led"]=                  DxlRegisterByte(0x19,'rw',range=[0,1])
         
         # Here goes compliance or PID or DIP
         
         self.registers["goal_pos"]=             DxlRegisterWord(0x1E,'rw')
         self.registers["moving_speed"]=         DxlRegisterWord(0x20,'rw')
-        self.registers["torque_limit"]=         DxlRegisterWord(0x22,'rw')
+        self.registers["torque_limit"]=         DxlRegisterWord(0x22,'rw',range=[0,1023])
         self.registers["present_position"]=     DxlRegisterWord(0x24,'r')
         self.registers["present_speed"]=        DxlRegisterWord(0x26,'r')
         self.registers["present_load"]=         DxlRegisterWord(0x28,'r')
@@ -101,8 +101,8 @@ class DxlMotorAXMX(DxlMotor):
         self.registers["present_temp"]=         DxlRegisterByte(0x2B,'r')
         self.registers["registered"]=           DxlRegisterByte(0x2C,'r')
         self.registers["moving"]=               DxlRegisterByte(0x2E,'r')
-        self.registers["lock"]=                 DxlRegisterByte(0x2F,'rw')
-        self.registers["punch"]=                DxlRegisterWord(0x30,'rw')
+        self.registers["lock"]=                 DxlRegisterByte(0x2F,'rw',range=[0,1])
+        self.registers["punch"]=                DxlRegisterWord(0x30,'rw',range=[0x20,0x3ff])
         
         self.sort()
 
@@ -120,6 +120,9 @@ class DxlMotorAX12(DxlMotorAXMX):
         self.registers["cw_compliance_slope"]=  DxlRegisterByte(0x1C,'rw')
         self.registers["ccw_compliance_slope"]= DxlRegisterByte(0x1D,'rw')
 
+        self.registers["goal_pos"]=             DxlRegisterWord(0x1E,'rw',range=[0,1023])
+        self.registers["moving_speed"]=         DxlRegisterWord(0x20,'rw',range=[0,1023])
+
         self.sort()
         
 
@@ -135,6 +138,9 @@ class DxlMotorMX28(DxlMotorAXMX):
         self.registers["i_gain"]=               DxlRegisterByte(0x1B,'rw')
         self.registers["d_gain"]=               DxlRegisterByte(0x1C,'rw')
         
+        self.registers["goal_pos"]=             DxlRegisterWord(0x1E,'rw',range=[0,4096])
+        self.registers["moving_speed"]=         DxlRegisterWord(0x20,'rw',range=[0,1023])
+
         self.sort()
 
 class DxlMotorMX64(DxlMotorAXMX):
@@ -148,5 +154,8 @@ class DxlMotorMX64(DxlMotorAXMX):
         self.registers["d_gain"]=               DxlRegisterByte(0x1A,'rw')
         self.registers["i_gain"]=               DxlRegisterByte(0x1B,'rw')
         self.registers["p_gain"]=               DxlRegisterByte(0x1C,'rw')
+
+        self.registers["goal_pos"]=             DxlRegisterWord(0x1E,'rw',range=[0,4096])
+        self.registers["moving_speed"]=         DxlRegisterWord(0x20,'rw',range=[0,1023])
         
         self.sort()

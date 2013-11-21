@@ -82,9 +82,14 @@ class MotorsWindow:
     def generate(self,id):        
         Label(self.frame,text="MOTOR %d"%id).grid(column=self.column,row=self.row,columnspan=2)
         self.row+=1
-        self.addRegister(id,"goal_pos")        
-        self.addRegister(id,"moving_speed")
-        self.addRegister(id,"p_gain")
+        motor=self.chain.motors[id]
+        for rname,reg in motor.registers.items():
+            if 'w' in reg.mode and not reg.eeprom:
+                self.addRegister(id,rname)
+        
+        #~ self.addRegister(id,"goal_pos")        
+        #~ self.addRegister(id,"moving_speed")
+        #~ self.addRegister(id,"p_gain")
         if self.row>10:
             self.row=0
             self.column+=2
@@ -93,14 +98,15 @@ class MotorsWindow:
         Label(self.frame,text=register).grid(column=self.column,row=self.row)
         val=self.chain.get_reg(id,register)
         reg=self.chain.motors[id].registers[register]
-        if reg.size==1:
-            toval=255
-        else:
-            toval=4095
-            
-            
         
-        scale=Scale(self.frame, from_=0, to=toval, length=200,orient=HORIZONTAL,command=lambda val,id=id,register=register: self.set(id,register,val))
+        if reg.range:
+            range=reg.range
+        elif reg.size==1:
+            range=[0,255]
+        else:
+            range=[0,65535]
+        
+        scale=Scale(self.frame, from_=range[0], to=range[1], length=250,orient=HORIZONTAL,command=lambda val,id=id,register=register: self.set(id,register,val))
         scale.set(val)
         scale.grid(column=self.column+1,row=self.row)
         self.row+=1
@@ -110,6 +116,7 @@ class MotorsWindow:
         self.window.destroy()
     
     def set(self,id,register,value):
+        print "REG:"+register+" "+str(value)
         self.parent.chain.set_reg(id,register,int(value))
         
         
