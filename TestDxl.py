@@ -19,12 +19,18 @@ logging.basicConfig(level=logging.DEBUG)
 
     
         
-
-if __name__ == "__main__":    
-    chain=DxlChain("COM21", rate=3000000)
-    #~ chain.reopen()
+def testArm(chain):
     chain.dump()
+    time.sleep(1)
+    chain.set_reg(1,"torque_enable",1)
+    chain.set_reg(1,"moving_speed",100)
+    chain.set_reg(1,"goal_pos",100)
+    time.sleep(1)
+    chain.set_reg(1,"goal_pos",2800)
+    time.sleep(1)
+    chain.set_reg(1,"torque_enable",0)
 
+def testAX12(chain):
     conf="""
 {
     "1": {
@@ -63,15 +69,18 @@ if __name__ == "__main__":
     }
 }
 """
-    #~ chain.set_configuration(json.loads(conf))
+    chain.set_configuration(json.loads(conf))
     time.sleep(1)
     chain.set_reg(1,"torque_enable",1)
     chain.set_reg(1,"moving_speed",100)
     chain.set_reg(1,"goal_pos",100)
     time.sleep(1)
-    chain.set_reg(1,"goal_pos",2800)
+    chain.set_reg(1,"goal_pos",800)
     time.sleep(1)
     chain.set_reg(1,"torque_enable",0)
-    
-    chain.dump()
+
+if __name__ == "__main__":    
+    chain=DxlChain("COM21", rate=3000000)
+    #~ testAX12(chain)
+    testArm(chain)
     chain.close()
