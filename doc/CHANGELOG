@@ -24,16 +24,13 @@ TODO v1.0
 
 Total: around 5 j/h
 
-
-
-TODO v1.1
-    - GUI Tools improvements (2 j/h)
-    
-    
     
     
 TODO:
-    GUI with JSON configurations for setting/reading values
+    *GUI with JSON configurations for setting/reading values
     save/load config
     tosi and fromsi with motor characteristics
+    *register ranges
+    fastapi multimotor
+    
     
