@@ -4,145 +4,233 @@
   <element>
     <type>com.umlet.element.Class</type>
     <coordinates>
-      <x>130</x>
-      <y>70</y>
+      <x>140</x>
+      <y>100</y>
       <w>130</w>
       <h>60</h>
     </coordinates>
-    <panel_attributes>DynamixelChain</panel_attributes>
+    <panel_attributes>DxlChain</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
     <type>com.umlet.element.Class</type>
     <coordinates>
-      <x>130</x>
-      <y>310</y>
+      <x>140</x>
+      <y>290</y>
       <w>130</w>
       <h>120</h>
     </coordinates>
-    <panel_attributes>/DynamixelMotor/
+    <panel_attributes>/DxlMotor/
 </panel_attributes>
     <additional_attributes/>
   </element>
   <element>
     <type>com.umlet.element.Class</type>
     <coordinates>
-      <x>410</x>
-      <y>280</y>
+      <x>540</x>
+      <y>220</y>
       <w>100</w>
       <h>30</h>
     </coordinates>
-    <panel_attributes>AX12</panel_attributes>
+    <panel_attributes>DxlMotorAX12</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
     <type>com.umlet.element.Relation</type>
     <coordinates>
-      <x>170</x>
-      <y>100</y>
+      <x>180</x>
+      <y>130</y>
       <w>50</w>
-      <h>230</h>
+      <h>180</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;&lt;&lt;-</panel_attributes>
-    <additional_attributes>30;30;30;210</additional_attributes>
+    <additional_attributes>30;30;30;160</additional_attributes>
   </element>
   <element>
     <type>com.umlet.element.Relation</type>
     <coordinates>
-      <x>230</x>
-      <y>260</y>
-      <w>200</w>
-      <h>90</h>
+      <x>390</x>
+      <y>200</y>
+      <w>170</w>
+      <h>110</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>30;70;180;30</additional_attributes>
+    <additional_attributes>30;90;150;30</additional_attributes>
   </element>
   <element>
     <type>com.umlet.element.Class</type>
     <coordinates>
-      <x>410</x>
+      <x>540</x>
+      <y>270</y>
+      <w>100</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>DxlMotorAX18</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>540</x>
       <y>320</y>
       <w>100</w>
       <h>30</h>
     </coordinates>
-    <panel_attributes>AX18</panel_attributes>
+    <panel_attributes>DxlMotorMX28</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
     <type>com.umlet.element.Class</type>
     <coordinates>
-      <x>410</x>
-      <y>360</y>
+      <x>540</x>
+      <y>370</y>
       <w>100</w>
       <h>30</h>
     </coordinates>
-    <panel_attributes>MX28</panel_attributes>
+    <panel_attributes>DxlMotorMX64</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
     <type>com.umlet.element.Class</type>
     <coordinates>
-      <x>410</x>
-      <y>400</y>
+      <x>320</x>
+      <y>390</y>
       <w>100</w>
       <h>30</h>
     </coordinates>
-    <panel_attributes>MX64</panel_attributes>
-    <additional_attributes/>
-  </element>
-  <element>
-    <type>com.umlet.element.Class</type>
-    <coordinates>
-      <x>410</x>
-      <y>440</y>
-      <w>100</w>
-      <h>30</h>
-    </coordinates>
-    <panel_attributes>Pro</panel_attributes>
+    <panel_attributes>DxlMotorPro</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
     <type>com.umlet.element.Relation</type>
     <coordinates>
-      <x>230</x>
-      <y>300</y>
-      <w>200</w>
-      <h>70</h>
+      <x>390</x>
+      <y>250</y>
+      <w>170</w>
+      <h>80</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>30;50;180;30</additional_attributes>
+    <additional_attributes>30;60;150;30</additional_attributes>
   </element>
   <element>
     <type>com.umlet.element.Relation</type>
     <coordinates>
-      <x>230</x>
-      <y>340</y>
-      <w>200</w>
+      <x>390</x>
+      <y>300</y>
+      <w>170</w>
       <h>50</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>30;30;180;30</additional_attributes>
+    <additional_attributes>30;30;150;30</additional_attributes>
   </element>
   <element>
     <type>com.umlet.element.Relation</type>
     <coordinates>
-      <x>230</x>
-      <y>360</y>
-      <w>200</w>
-      <h>70</h>
+      <x>390</x>
+      <y>320</y>
+      <w>170</w>
+      <h>80</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>30;30;180;50</additional_attributes>
+    <additional_attributes>30;30;150;60</additional_attributes>
   </element>
   <element>
     <type>com.umlet.element.Relation</type>
     <coordinates>
-      <x>230</x>
-      <y>380</y>
-      <w>200</w>
+      <x>240</x>
+      <y>340</y>
+      <w>100</w>
       <h>90</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>30;30;180;70</additional_attributes>
+    <additional_attributes>30;30;80;70</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>180</x>
+      <y>380</y>
+      <w>50</w>
+      <h>140</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>30;30;30;120</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>320</x>
+      <y>280</y>
+      <w>100</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>/DxlMotorAXMX/</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>240</x>
+      <y>280</y>
+      <w>100</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>30;40;80;30</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>140</x>
+      <y>500</y>
+      <w>130</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>/DxlRegister/</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>70</x>
+      <y>600</y>
+      <w>130</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>DxlRegisterByte</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>210</x>
+      <y>600</y>
+      <w>130</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>DxlRegisterWord</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>200</x>
+      <y>530</y>
+      <w>90</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>30;30;70;70</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>100</x>
+      <y>530</y>
+      <w>100</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>80;30;30;70</additional_attributes>
   </element>
 </diagram>
