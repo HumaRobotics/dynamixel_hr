@@ -124,9 +124,9 @@ class DynamixelMotorMX28(DynamixelMotorAXMX):
     def __init__(self):
         DynamixelMotorAXMX.__init__(self)
 
-        self.registers["d_gain"]=               DxlRegisterByte(0x1A,'rw')
+        self.registers["p_gain"]=               DxlRegisterByte(0x1A,'rw')
         self.registers["i_gain"]=               DxlRegisterByte(0x1B,'rw')
-        self.registers["p_gain"]=               DxlRegisterByte(0x1C,'rw')
+        self.registers["d_gain"]=               DxlRegisterByte(0x1C,'rw')
         
         self.sort()
 
@@ -390,7 +390,7 @@ class DynamixelChain:
 
 
 if __name__ == "__main__":    
-    chain=DynamixelChain("COM21", rate=1000000)
+    chain=DynamixelChain("COM21", rate=3000000)
     #~ chain.reopen()
     chain.dump()
 
@@ -433,15 +433,15 @@ if __name__ == "__main__":
 }
 """    
     #~ chain.loadConfiguration(conf)
-    chain.set_configuration(json.loads(conf))
+    #~ chain.set_configuration(json.loads(conf))
     time.sleep(1)
-    #~ chain.set_reg(1,"torque_enable",1)
-    chain.set_reg(1,"moving_speed",20)
+    chain.set_reg(1,"torque_enable",1)
+    chain.set_reg(1,"moving_speed",100)
     chain.set_reg(1,"goal_pos",100)
     time.sleep(1)
     chain.set_reg(1,"goal_pos",800)
     time.sleep(1)
-    #~ chain.set_reg(1,"torque_enable",0)
+    chain.set_reg(1,"torque_enable",0)
     
     chain.dump()
     chain.close()
