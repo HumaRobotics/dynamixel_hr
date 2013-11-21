@@ -331,7 +331,8 @@ class DynamixelChain:
         reg=m.registers[name]
         (esize,cmd)=m.setRegisterCmd(name,reg.todxl(v))
         (nid,data)=self.comm(id,cmd)
-        if len(data)!=esize:
+        logging.info('Motor ID %d set register %s to %d'%(id,name,v) )
+        if len(data)!=esize:        
             raise DxlCommunicationException,'Motor ID %d did not retrieve expected register %s size %d: got %d bytes'%(id,name,esize,len(data)) 
 
     
@@ -358,7 +359,7 @@ class DynamixelChain:
             d[id]=dd
             for (name,r) in m.registers.items():
                 dd[name]=self.get_reg(id,name)
-        return dd
+        return d
         
     def set_configuration(self,conf):
         d={}
@@ -375,7 +376,7 @@ class DynamixelChain:
                 if current==val: continue
                 # Value has to be changed
                 if not 'w' in reg.mode: # read only: generate error if setting is EEPROM
-                    if reg.eeprom: raise DxlConfigurationException,"Cannot change EEPROM register %s from %d to %d on motor ID %d"%(name,current,val,iid)
+                    if reg.eeprom: raise DxlConfigurationException,"Invalid EEPROM value in motor ID %d register %s: current=%d expected=%d"%(iid,name,current,val)
                     else: pass
                 else:
                     if reg.eeprom:
@@ -395,50 +396,51 @@ if __name__ == "__main__":
 
     conf="""
 {
-    "2": {
-        "alarm_shutdown": 36, 
-        "lock": 0, 
-        "max_torque": 1023, 
-        "goal_pos": 200, 
-        "present_load": 104, 
-        "id": 2, 
-        "ccw_compliance_margin": 1, 
-        "firmware": 24, 
-        "alarm_led": 36, 
+    "1": {
         "model_number": 12, 
+        "firmware": 24, 
+        "id": 1, 
         "baud_rate": 1, 
-        "present_temp": 39, 
-        "torque_enable": 1, 
-        "moving_speed": 50, 
-        "led": 0, 
-        "torque_limit": 1023, 
-        "status_return_level": 2, 
-        "ccw_compliance_slope": 32, 
-        "registered": 0, 
-        "punch": 32, 
-        "cw_compliance_margin": 1, 
-        "high_temp_limit": 70, 
-        "moving": 0, 
-        "ccw_angle_limit": 1023, 
-        "low_voltage_limit": 60, 
         "return_delay": 250, 
+        "cw_angle_limit": 0, 
+        "ccw_angle_limit": 1023, 
+        "high_temp_limit": 70, 
+        "low_voltage_limit": 60, 
         "high_voltage_limit": 140, 
+        "max_torque": 1023, 
+        "status_return_level": 2, 
+        "alarm_led": 36, 
+        "alarm_shutdown": 36, 
+        "torque_enable": 1, 
+        "led": 0, 
+        "cw_compliance_margin": 1, 
+        "ccw_compliance_margin": 1, 
         "cw_compliance_slope": 32, 
-        "present_speed": 52, 
+        "ccw_compliance_slope": 32, 
+        "goal_pos": 100, 
+        "moving_speed": 50, 
+        "torque_limit": 1023, 
+        "present_position": 800, 
+        "present_speed": 0, 
+        "present_load": 0, 
         "present_voltage": 123, 
-        "present_position": 773, 
-        "cw_angle_limit": 0
+        "present_temp": 39, 
+        "registered": 0, 
+        "moving": 0, 
+        "lock": 0, 
+        "punch": 32
     }
 }
 """    
     #~ chain.loadConfiguration(conf)
     chain.set_configuration(json.loads(conf))
+    time.sleep(1)
     #~ chain.set_reg(1,"torque_enable",1)
-    #~ chain.set_reg(1,"moving_speed",50)
-    #~ chain.set_reg(1,"goal_pos",100)
-    #~ time.sleep(1)
-    #~ chain.set_reg(1,"goal_pos",800)
-    #~ time.sleep(1)
+    chain.set_reg(1,"moving_speed",20)
+    chain.set_reg(1,"goal_pos",100)
+    time.sleep(1)
+    chain.set_reg(1,"goal_pos",800)
+    time.sleep(1)
     #~ chain.set_reg(1,"torque_enable",0)
     
     chain.dump()
