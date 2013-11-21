@@ -230,7 +230,7 @@ class DxlChain:
                 if not 'w' in reg.mode: # read only: generate error if setting is EEPROM
                     if reg.eeprom: raise DxlConfigurationException,"Invalid EEPROM value in motor ID %d register %s: current=%d expected=%d"%(iid,name,current,val)
                     else: pass
-                else:
+                else: # Set value
                     if reg.eeprom:
                         logging.info( "Changed (EEPROM register %s from %d to %d on motor ID %d"%(name,current,val,iid) )
                     self.set_reg(iid,name,val) # if writable set it

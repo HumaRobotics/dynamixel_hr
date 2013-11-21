@@ -4,7 +4,7 @@
 
 # WINDOWS WARNING: For best performance, parameters of the COM Port should be set to maximum baud rate, and 1ms delay (Device Manager, COM Ports, properties, advanced)
 
-from dxl import *
+from dxl import dxlchain
 
 import sys
 import serial
@@ -18,9 +18,7 @@ from collections import OrderedDict
 logging.basicConfig(level=logging.DEBUG)
 
     
-        
 def testArm(chain):
-    chain.dump()
     time.sleep(1)
     chain.set_reg(1,"torque_enable",1)
     chain.set_reg(1,"moving_speed",100)
@@ -81,6 +79,7 @@ def testAX12(chain):
 
 if __name__ == "__main__":    
     chain=dxlchain.DxlChain("COM21", rate=3000000)
+    chain.dump()
     #~ testAX12(chain)
     testArm(chain)
     chain.close()

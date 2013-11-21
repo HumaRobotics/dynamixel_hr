@@ -33,7 +33,7 @@ class DxlMotor(object):
     def registerModel(cls,model_number,model_cls):
         if model_number not in cls.DxlModels.keys():
             cls.DxlModels[model_number]=model_cls
-            print "Registered models %d: "%model_number+str(model_cls)
+            logging.info( "Registered Dynamixel Motor model %s (%d): "%(model_cls.model_name,model_number)+str(model_cls) )
 
     @classmethod
     def instantiateMotor(cls,model_number):
