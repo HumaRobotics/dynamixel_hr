@@ -17,42 +17,41 @@ searchRates=[57142,3000000,1000000,9600]
 
 
 
-class MotorWindow:
+#~ class MotorWindow:
 
-    def __init__(self, master,parent,motor,id):
-        self.master=master
-        self.parent=parent
-        self.motor=motor
-        self.id=id
+    #~ def __init__(self, master,parent,motor,id):
+        #~ self.master=master
+        #~ self.parent=parent
+        #~ self.motor=motor
+        #~ self.id=id
         
-        self.row=1
+        #~ self.row=1
         
-        self.window=Toplevel(self.master)
-        self.window.title("Motor %d"%id)
-        self.window.bind('<Key-Escape>', self.destroy )
-        self.frame=Frame(self.window, width= 300, height= 200)
+        #~ self.window=Toplevel(self.master)
+        #~ self.window.title("Motor %d"%id)
+        #~ self.window.bind('<Key-Escape>', self.destroy )
+        #~ self.frame=Frame(self.window, width= 300, height= 200)
         
-        self.addRegister("goal_pos")
-        self.addRegister("moving_speed")
-        #~ Button(self.frame,text="Close",command=self.destroy).grid(column=0,row=0)
+        #~ self.addRegister("goal_pos")
+        #~ self.addRegister("moving_speed")
         
-        self.frame.pack()
+        #~ self.frame.pack()
         
-    def addRegister(self,register):
-        Label(self.frame,text=register).grid(column=0,row=self.row)
-        val=self.parent.chain.get_reg(self.id,register)
-        scale=Scale(self.frame, from_=0, to=4095, orient=HORIZONTAL,command=lambda val,register=register: self.set(register,val))
-        scale.set(val)
-        scale.grid(column=0,row=self.row+1)
-        self.row+=2
+    #~ def addRegister(self,register):
+        #~ Label(self.frame,text=register).grid(column=0,row=self.row)
+        #~ val=self.parent.chain.get_reg(self.id,register)
+        #~ scale=Scale(self.frame, from_=0, to=4095, orient=HORIZONTAL,command=lambda val,register=register: self.set(register,val))
+        #~ scale.set(val)
+        #~ scale.grid(column=0,row=self.row+1)
+        #~ self.row+=2
         
-    def destroy(self):
-        del self.parent.motorWindows[self.id]
-        self.window.destroy()
+    #~ def destroy(self):
+        #~ del self.parent.motorWindows[self.id]
+        #~ self.window.destroy()
     
-    def set(self,register,value):
-        print str(register)+" "+str(value)
-        self.parent.chain.set_reg(self.id,register,int(value))
+    #~ def set(self,register,value):
+        #~ print str(register)+" "+str(value)
+        #~ self.parent.chain.set_reg(self.id,register,int(value))
 
 
 
@@ -65,11 +64,15 @@ class MotorsWindow:
         self.chain=parent.chain
         
         self.window=Toplevel(self.master)
-        self.window.title("Motors")
+        self.window.title("Motors")        
+
+        self.window.protocol("WM_DELETE_WINDOW", self.destroy)
         self.window.bind('<Key-Escape>', self.destroy )
+        
         self.frame=Frame(self.window, width= 300, height= 200)
         
         self.row=0
+        self.column=0
         
         for id in self.chain.motors.keys():
             self.generate(id)            
@@ -77,21 +80,33 @@ class MotorsWindow:
         self.frame.pack()
 
     def generate(self,id):        
-        Label(self.frame,text="MOTOR %d"%id).grid(column=0,row=self.row)
+        Label(self.frame,text="MOTOR %d"%id).grid(column=self.column,row=self.row,columnspan=2)
         self.row+=1
         self.addRegister(id,"goal_pos")        
         self.addRegister(id,"moving_speed")
+        self.addRegister(id,"p_gain")
+        if self.row>10:
+            self.row=0
+            self.column+=2
 
     def addRegister(self,id,register):
-        Label(self.frame,text=register).grid(column=0,row=self.row)
-        val=self.parent.chain.get_reg(id,register)
-        scale=Scale(self.frame, from_=0, to=4095, orient=HORIZONTAL,command=lambda val,id=id,register=register: self.set(id,register,val))
+        Label(self.frame,text=register).grid(column=self.column,row=self.row)
+        val=self.chain.get_reg(id,register)
+        reg=self.chain.motors[id].registers[register]
+        if reg.size==1:
+            toval=255
+        else:
+            toval=4095
+            
+            
+        
+        scale=Scale(self.frame, from_=0, to=toval, length=200,orient=HORIZONTAL,command=lambda val,id=id,register=register: self.set(id,register,val))
         scale.set(val)
-        scale.grid(column=1,row=self.row)
+        scale.grid(column=self.column+1,row=self.row)
         self.row+=1
         
     def destroy(self):
-        #~ del self.parent.motorWindows[self.id]
+        self.parent.motorsWindow=None
         self.window.destroy()
     
     def set(self,id,register,value):
