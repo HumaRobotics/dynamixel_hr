@@ -238,3 +238,14 @@ class DxlChain:
     def dump(self):
         conf=self.get_configuration()
         print json.dumps(conf,indent=4,sort_keys=False)
+
+    def enable(self,state=True):
+        v=0
+        if state:
+            v=1
+        for id in self.motors.keys():
+            self.set_reg(id,"torque_enable",v)
+    
+    def disable(self):
+        self.enable(False)
+        
