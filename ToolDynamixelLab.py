@@ -8,16 +8,103 @@ from string import *
 
 from Tkinter import *
 import tkMessageBox
+from serial import SerialException
+
 
 from dxl import *
 
 searchRates=[57142,3000000,1000000,9600]
 
 
+
+class MotorWindow:
+
+    def __init__(self, master,parent,motor,id):
+        self.master=master
+        self.parent=parent
+        self.motor=motor
+        self.id=id
+        
+        self.row=1
+        
+        self.window=Toplevel(self.master)
+        self.window.title("Motor %d"%id)
+        self.window.bind('<Key-Escape>', self.destroy )
+        self.frame=Frame(self.window, width= 300, height= 200)
+        
+        self.addRegister("goal_pos")
+        self.addRegister("moving_speed")
+        #~ Button(self.frame,text="Close",command=self.destroy).grid(column=0,row=0)
+        
+        self.frame.pack()
+        
+    def addRegister(self,register):
+        Label(self.frame,text=register).grid(column=0,row=self.row)
+        val=self.parent.chain.get_reg(self.id,register)
+        scale=Scale(self.frame, from_=0, to=4095, orient=HORIZONTAL,command=lambda val,register=register: self.set(register,val))
+        scale.set(val)
+        scale.grid(column=0,row=self.row+1)
+        self.row+=2
+        
+    def destroy(self):
+        del self.parent.motorWindows[self.id]
+        self.window.destroy()
+    
+    def set(self,register,value):
+        print str(register)+" "+str(value)
+        self.parent.chain.set_reg(self.id,register,int(value))
+
+
+
+
+class MotorsWindow:
+
+    def __init__(self, master,parent):
+        self.master=master
+        self.parent=parent
+        self.chain=parent.chain
+        
+        self.window=Toplevel(self.master)
+        self.window.title("Motors")
+        self.window.bind('<Key-Escape>', self.destroy )
+        self.frame=Frame(self.window, width= 300, height= 200)
+        
+        self.row=0
+        
+        for id in self.chain.motors.keys():
+            self.generate(id)            
+        
+        self.frame.pack()
+
+    def generate(self,id):        
+        Label(self.frame,text="MOTOR %d"%id).grid(column=0,row=self.row)
+        self.row+=1
+        self.addRegister(id,"goal_pos")        
+        self.addRegister(id,"moving_speed")
+
+    def addRegister(self,id,register):
+        Label(self.frame,text=register).grid(column=0,row=self.row)
+        val=self.parent.chain.get_reg(id,register)
+        scale=Scale(self.frame, from_=0, to=4095, orient=HORIZONTAL,command=lambda val,id=id,register=register: self.set(id,register,val))
+        scale.set(val)
+        scale.grid(column=1,row=self.row)
+        self.row+=1
+        
+    def destroy(self):
+        #~ del self.parent.motorWindows[self.id]
+        self.window.destroy()
+    
+    def set(self,id,register,value):
+        self.parent.chain.set_reg(id,register,int(value))
+        
+        
 class MainWindow:
 
     def __init__(self, master):
         self.master=master
+
+        self.motorsWindow=None
+        self.chain=None
 
         self.width=800
         self.height=600
@@ -65,10 +152,20 @@ class MainWindow:
         Button(self.frame,text="Activate",command=self.activate).grid(column=11,row=7)
         Button(self.frame,text="Deactivate",command=self.deactivate).grid(column=11,row=8)
 
-        self.chain=None
+        Button(self.frame,text="Show Motors",command=lambda: self.createMotorsWindow()).grid(column=11,row=9)
+        
+        
         self.frame.pack()
         
-
+        
+    def createMotorsWindow(self):
+        if not self.chain:
+            tkMessageBox.showerror("Chain Error","Please connect to a valid chain first")
+            return
+        if self.motorsWindow==None:
+            self.motorsWindow=MotorsWindow(self.master,self)
+        
+        
     def exit(self,event=None):
         self.close()
         self.master.destroy()
@@ -78,7 +175,10 @@ class MainWindow:
         comPort=self.comPort.get()
         self.chain=dxlchain.DxlChain(comPort,rate=rate)
 
-    def close(self):        
+    def close(self):
+        if self.motorsWindow:
+            self.motorsWindow.destroy()
+            self.motorsWindow=None
         if self.chain:
             try:
                 self.chain.close()
@@ -88,8 +188,13 @@ class MainWindow:
         
     def scan(self):
         selected_rate=None
-        for rate in searchRates:
-            self.open(rate)
+        for rate in searchRates:            
+            try:
+                self.open(rate)
+            except SerialException,e:
+                tkMessageBox.showerror("Serial Error","Could not open serial port: \n"+str(e))
+                return
+                
             try:
                 self.chain.get_motor_list()                
                 print "rate %d: %s"%(rate,self.chain.motors.keys())
@@ -135,7 +240,11 @@ class MainWindow:
     def selectRate(self,rate):
         print "Selected rate %d"%rate
         self.baudRate.set(rate)
-        self.open(rate)
+        try:
+            self.open(rate)
+        except SerialException,e:
+            tkMessageBox.showerror("Serial Error","Could not open serial port: \n"+str(e))
+            return
         self.conf=self.chain.get_configuration()
         self.chain.dump()
         self.showConfig(self.conf)
@@ -145,39 +254,7 @@ class MainWindow:
         self.textConfig.delete(1.0,END)            
         self.textConfig.insert(END,txt)
         
-    def bench(self):
-        comPort=self.comPort.get()
-        servo=atoi(self.servoId.get())
-        print "Connect with maximum rate at id %d"%servo
-        actuator = ServoController(comPort,baudRate=3000000)
-        benchGetPosition(actuator,servo)
-        actuator.Close()
-
-    def getRegisters(self):
-        comPort=self.comPort.get()
-        servo=atoi(self.servoId.get())
-        print "Connect with maximum rate at id %d"%servo
-        actuator = ServoController(comPort,baudRate=3000000)
-        regs=actuator.GetAllReg(servo)
-        print "Motor %d, regs %s\n"%(servo,str(regs))
-        actuator.Close()
-
-    def factoryReset(self):
-        comPort=self.comPort.get()
-        print "Locating servo"
-        res=identifyServo(comPort)
-        if res==None:
-            print "ERROR: Could not find any servo"
-            exit()
-        print "Servo found: "+str(res)
-        rate=res[0]
-        oldId=res[1]
-
-        print "Performing Factory Reset"
-        actuator = ServoController(comPort,baudRate=rate)
-        actuator.FullReset()
-        actuator.Close()
-        print "Done"
+ 
     
     def set_chain_reg(self,reg,value):
         if not self.chain:
@@ -192,7 +269,7 @@ class MainWindow:
     def deactivate(self):
         self.set_chain_reg("torque_enable",0)
 
-appname="DxlLab"
+appname="DynamixelLab"
 root = Tk()
 root.title(appname)
 mainwindow = MainWindow(root)
