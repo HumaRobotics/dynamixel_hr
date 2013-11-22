@@ -19,7 +19,7 @@ class DxlROS(Thread):
         self.bindings=bindings
         for (id,name) in self.bindings.items():
             if id not in self.chain.motors.keys():
-                raise Exception,"Cannot bind ROS name %s to non-existing motor id %d"%(name,id)
+                raise Exception,"Cannot bind ROS name %s to non-existing motor ID %d"%(name,id)
         rospy.Subscriber("/dxl/enable",Bool,self.enable)
         self.buildPublishers()
         self.start()
@@ -43,11 +43,6 @@ class DxlROS(Thread):
             
         
     def enable(self,msg):
-        print msg.data
-        if msg.data:
-            print "Got enable message"
-        else:
-            print "Got disable message"
         self.chain.enable(msg.data)
             
         

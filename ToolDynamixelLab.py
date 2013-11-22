@@ -2,6 +2,7 @@
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
+import os
 import time
 import json
 from string import *
@@ -73,22 +74,27 @@ class MotorsWindow:
         
         self.row=0
         self.column=0
-        
+        self.update=False
         for id in self.chain.motors.keys():
             self.generate(id)            
         
         self.frame.pack()
+        self.master.after(500,self.startUpdating)
 
-    def generate(self,id):        
-        Label(self.frame,text="MOTOR %d"%id).grid(column=self.column,row=self.row,columnspan=2)
+    def startUpdating(self):
+        self.update=True
+        
+    def generate(self,id): 
+        model_name=self.chain.motors[id].model_name
+        Label(self.frame,text="MOTOR %d %s"%(id,model_name)).grid(column=self.column,row=self.row,columnspan=2)
         self.row+=1
         motor=self.chain.motors[id]
-        for rname,reg in motor.registers.items():
-            if 'w' in reg.mode and not reg.eeprom:
-                self.addRegister(id,rname)
+        #~ for rname,reg in motor.registers.items():
+            #~ if 'w' in reg.mode and not reg.eeprom:
+                #~ self.addRegister(id,rname)
         
-        #~ self.addRegister(id,"goal_pos")        
-        #~ self.addRegister(id,"moving_speed")
+        self.addRegister(id,"goal_pos")        
+        self.addRegister(id,"moving_speed")
         #~ self.addRegister(id,"p_gain")
         if self.row>10:
             self.row=0
@@ -106,8 +112,9 @@ class MotorsWindow:
         else:
             range=[0,65535]
         
-        scale=Scale(self.frame, from_=range[0], to=range[1], length=250,orient=HORIZONTAL,command=lambda val,id=id,register=register: self.set(id,register,val))
+        scale=Scale(self.frame, from_=range[0], to=range[1], length=250,orient=HORIZONTAL)        
         scale.set(val)
+        scale.configure( command=lambda val,id=id,register=register: self.set(id,register,val) )
         scale.grid(column=self.column+1,row=self.row)
         self.row+=1
         
@@ -116,8 +123,8 @@ class MotorsWindow:
         self.window.destroy()
     
     def set(self,id,register,value):
-        print "REG:"+register+" "+str(value)
-        self.parent.chain.set_reg(id,register,int(value))
+        if self.update:
+            self.parent.chain.set_reg(id,register,int(value))
         
         
 class MainWindow:
@@ -138,7 +145,11 @@ class MainWindow:
         Label(self.frame,text="Port:").grid(column=0,row=0)
         
         self.comPort= StringVar()
-        self.comPort.set("COM21")
+        if os.name=="nt":
+            port="COM21"
+        else:
+            port="/dev/ttyUSB0"
+        self.comPort.set(port)
         entryComPort = Entry(self.frame, textvariable=self.comPort)
         entryComPort.grid(column=1,row=0)
         
@@ -146,7 +157,7 @@ class MainWindow:
 
         Label(self.frame,text="Baudrate:").grid(column=3,row=0)
         self.baudRate= IntVar()
-        self.baudRate.set("3000000")
+        self.baudRate.set("1000000")
         entryBaudRate= Entry(self.frame, textvariable=self.baudRate)
         entryBaudRate.grid(column=4,row=0)
         
@@ -218,9 +229,9 @@ class MainWindow:
                 return
                 
             try:
-                self.chain.get_motor_list()                
-                print "rate %d: %s"%(rate,self.chain.motors.keys())
-                if len(self.chain.motors.keys())>0:
+                motors=self.chain.get_motor_list(instantiate=False)                
+                print "rate %d: %s"%(rate,str(motors))
+                if len(motors)>0:
                     selected_rate=rate
                 #~ chain.dump()
             finally:
@@ -253,7 +264,6 @@ class MainWindow:
     def refresh(self):
         if self.chain:
             self.conf=self.chain.get_configuration()
-            self.chain.dump()
             self.showConfig(self.conf)
         else:
             tkMessageBox.showerror("Chain Error","Please connect to a valid chain first")
@@ -268,7 +278,7 @@ class MainWindow:
             tkMessageBox.showerror("Serial Error","Could not open serial port: \n"+str(e))
             return
         self.conf=self.chain.get_configuration()
-        self.chain.dump()
+        #~ self.chain.dump()
         self.showConfig(self.conf)
 
     def showConfig(self,config):

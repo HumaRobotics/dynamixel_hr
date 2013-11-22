@@ -164,7 +164,9 @@ class DxlChain:
         (nid,data)=self.comm(id,cmd)
         if len(data)!=esize:
             raise DxlCommunicationException,'Motor ID %d did not retrieve expected register %s size %d: got %d bytes'%(id,name,esize,len(data)) 
-        return reg.fromdxl(data)
+        v=reg.fromdxl(data)
+        logging.info('Motor ID %d get register %s: %d'%(id,name,v) )
+        return v
 
     def set_reg(self,id,name,v):
         m=self.motors[id]
@@ -179,16 +181,19 @@ class DxlChain:
         
     # Configuration get/set functionalities
     
-    def get_motor_list(self):
+    def get_motor_list(self,instantiate=True):
         self.motors={}
         ids=self._ping_broadcast()
+        l=[]
         for id in ids:
             model=self._get_model(id)
             logging.info("Found motor ID %d model %d"%(id,model))
-            m=DxlMotor.instantiateMotor(model)
-            self.motors[id]=m
-            logging.info("Instantiated motor ID %d model %s (%d)"%(id,m.model_name,model))
-
+            l.append(id)
+            if instantiate:
+                m=DxlMotor.instantiateMotor(model)
+                self.motors[id]=m
+                logging.info("Instantiated motor ID %d model %s (%d)"%(id,m.model_name,model))
+        return l
 
     def get_configuration(self):
         self.get_motor_list()
