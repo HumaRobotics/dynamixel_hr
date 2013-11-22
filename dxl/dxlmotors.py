@@ -93,7 +93,7 @@ class DxlMotorAXMX(DxlMotor):
         self.registers["goal_pos"]=             DxlRegisterWord(0x1E,'rw')
         self.registers["moving_speed"]=         DxlRegisterWord(0x20,'rw')
         self.registers["torque_limit"]=         DxlRegisterWord(0x22,'rw',range=[0,1023])
-        self.registers["present_position"]=     DxlRegisterWord(0x24,'r')
+        self.registers["present_position"]=     DxlRegisterWord(0x24,'r',tosi=self.pos_to_si,fromsi=self.si_to_pos)
         self.registers["present_speed"]=        DxlRegisterWord(0x26,'r')
         self.registers["present_load"]=         DxlRegisterWord(0x28,'r')
 
@@ -106,11 +106,19 @@ class DxlMotorAXMX(DxlMotor):
         
         self.sort()
 
+    def pos_to_si(self,pos):
+        return self.tick_to_rad*float(pos)
+
+    def si_to_pos(self,si):
+        return int(float(si)/self.tick_to_rad)        
+
+
 
 class DxlMotorAX12(DxlMotorAXMX):
     __metaclass__=ModelRegisteringMetaclass
     model_name="AX12"
     model_number=12
+    tick_to_rad=0.00506145483078355577307870322862
     
     def __init__(self):
         DxlMotorAXMX.__init__(self)
@@ -120,16 +128,19 @@ class DxlMotorAX12(DxlMotorAXMX):
         self.registers["cw_compliance_slope"]=  DxlRegisterByte(0x1C,'rw')
         self.registers["ccw_compliance_slope"]= DxlRegisterByte(0x1D,'rw')
 
-        self.registers["goal_pos"]=             DxlRegisterWord(0x1E,'rw',range=[0,1023])
+        self.registers["goal_pos"]=             DxlRegisterWord(0x1E,'rw',range=[0,1023],tosi=self.pos_to_si,fromsi=self.si_to_pos)
         self.registers["moving_speed"]=         DxlRegisterWord(0x20,'rw',range=[0,1023])
 
         self.sort()
+                
+        
         
 
 class DxlMotorMX28(DxlMotorAXMX):
     __metaclass__=ModelRegisteringMetaclass
     model_name="MX28"
     model_number=29
+    tick_to_rad=0.00153588974175501002769284787627
 
     def __init__(self):
         DxlMotorAXMX.__init__(self)
@@ -138,7 +149,7 @@ class DxlMotorMX28(DxlMotorAXMX):
         self.registers["i_gain"]=               DxlRegisterByte(0x1B,'rw')
         self.registers["d_gain"]=               DxlRegisterByte(0x1C,'rw')
         
-        self.registers["goal_pos"]=             DxlRegisterWord(0x1E,'rw',range=[0,4096])
+        self.registers["goal_pos"]=             DxlRegisterWord(0x1E,'rw',range=[0,4096],tosi=self.pos_to_si,fromsi=self.si_to_pos)
         self.registers["moving_speed"]=         DxlRegisterWord(0x20,'rw',range=[0,1023])
 
         self.sort()
@@ -147,6 +158,7 @@ class DxlMotorMX64(DxlMotorAXMX):
     __metaclass__=ModelRegisteringMetaclass
     model_name="MX64"
     model_number=310
+    tick_to_rad=0.00153588974175501002769284787627
 
     def __init__(self):
         DxlMotorAXMX.__init__(self)
@@ -155,7 +167,7 @@ class DxlMotorMX64(DxlMotorAXMX):
         self.registers["i_gain"]=               DxlRegisterByte(0x1B,'rw')
         self.registers["p_gain"]=               DxlRegisterByte(0x1C,'rw')
 
-        self.registers["goal_pos"]=             DxlRegisterWord(0x1E,'rw',range=[0,4096])
+        self.registers["goal_pos"]=             DxlRegisterWord(0x1E,'rw',range=[0,4096],tosi=self.pos_to_si,fromsi=self.si_to_pos)
         self.registers["moving_speed"]=         DxlRegisterWord(0x20,'rw',range=[0,1023])
         
         self.sort()

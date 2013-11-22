@@ -13,5 +13,5 @@ if __name__=="__main__":
         chain=dxlchain.DxlChain("/dev/ttyUSB0",rate=1000000)
         chain.get_motor_list()
         bindings={1:"pan",2:"tilt1",3:"tilt2",4:"tilt3",5:"head"}
-        dxlros=dxlros.DxlROS(chain,rate=1,bindings=bindings)        
+        dxlros=dxlros.DxlROS(chain,rate=10,bindings=bindings)        
         rospy.spin()

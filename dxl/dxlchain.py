@@ -178,7 +178,14 @@ class DxlChain:
             raise DxlCommunicationException,'Motor ID %d did not retrieve expected register %s size %d: got %d bytes'%(id,name,esize,len(data)) 
 
     
-        
+    def to_si(self,id,name,v):        
+        reg=self.motors[id].registers[name]
+        return reg.tosi(v)
+
+    def from_si(self,id,name,v):
+        reg=self.motors[id].registers[name]
+        return reg.fromsi(v)
+
     # Configuration get/set functionalities
     
     def get_motor_list(self,instantiate=True):
