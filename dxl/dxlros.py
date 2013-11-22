@@ -13,10 +13,17 @@ from sensor_msgs.msg import *
 from std_msgs.msg import *
 
 class DxlROS(Thread):
-    def __init__(self,chain,bindings):
+    def __init__(self,chain,bindings=None):
         Thread.__init__(self)
-        self.chain=chain
+        self.chain=chain        
         self.bindings=bindings
+        
+        if self.bindings==None: # Use IDs as names if no binding provided
+            b={}
+            for id in self.chain.motors.keys():
+                b[id]=str(id)
+            self.bindings=b
+                    
         for (id,name) in self.bindings.items():
             if id not in self.chain.motors.keys():
                 raise Exception,"Cannot bind ROS name %s to non-existing motor ID %d"%(name,id)
