@@ -24,6 +24,8 @@ class DxlROS(Thread):
         self.bindings=bindings
         self.raw=raw
         
+        self.do_stop=False
+        
         if self.bindings==None: # Use IDs as names if no binding provided
             b={}
             for id in self.chain.motors.keys():
@@ -45,7 +47,7 @@ class DxlROS(Thread):
     
     def run(self):
         r=rospy.Rate(float(self.rate))
-        while not rospy.is_shutdown():
+        while not rospy.is_shutdown() and not self.do_stop:
             if self.raw:
                 for id,motorname in self.bindings.items():
                     regs=self.chain.motors[id].registers
@@ -66,7 +68,8 @@ class DxlROS(Thread):
             r.sleep()
         
         
-        
+    def stop(self):
+        self.do_stop=True
     
     def buildPublishers(self):
         self.pub={}

@@ -6,6 +6,7 @@ import os
 import time
 import json
 from string import *
+from threading import Thread
 
 from Tkinter import *
 import tkMessageBox
@@ -18,43 +19,50 @@ searchRates=[57142,3000000,1000000,9600]
 
 
 
-#~ class MotorWindow:
 
-    #~ def __init__(self, master,parent,motor,id):
-        #~ self.master=master
-        #~ self.parent=parent
-        #~ self.motor=motor
-        #~ self.id=id
+
+
+class RosWindow(Thread):
+
+    def __init__(self, master,parent,raw=False):
+        Thread.__init__(self)
+        self.master=master
+        self.parent=parent
+        self.chain=parent.chain
+        self.raw=raw
         
-        #~ self.row=1
+        self.window=Toplevel(self.master)
+        title="ROS SI"
+        if raw:
+            title="ROS Raw"
+        else:
+            title="ROS SI"
+            
+        self.window.title(title)
+
+        self.window.protocol("WM_DELETE_WINDOW", self.destroy)
+        self.window.bind('<Key-Escape>', self.destroy )
         
-        #~ self.window=Toplevel(self.master)
-        #~ self.window.title("Motor %d"%id)
-        #~ self.window.bind('<Key-Escape>', self.destroy )
-        #~ self.frame=Frame(self.window, width= 300, height= 200)
+        self.frame=Frame(self.window)
+        Button(self.frame,text="Close",command=self.destroy).grid(column=0,row=0)
+                
+        self.frame.pack()
+        self.start()
         
-        #~ self.addRegister("goal_pos")
-        #~ self.addRegister("moving_speed")
+    def run(self):
+        import rospy
+        from dxl import dxlros
+        rospy.init_node("dxl")
+        self.dxlros=dxlros.DxlROS(self.chain,rate=10,raw=self.raw)
+        rospy.spin()        
         
-        #~ self.frame.pack()
-        
-    #~ def addRegister(self,register):
-        #~ Label(self.frame,text=register).grid(column=0,row=self.row)
-        #~ val=self.parent.chain.get_reg(self.id,register)
-        #~ scale=Scale(self.frame, from_=0, to=4095, orient=HORIZONTAL,command=lambda val,register=register: self.set(register,val))
-        #~ scale.set(val)
-        #~ scale.grid(column=0,row=self.row+1)
-        #~ self.row+=2
-        
-    #~ def destroy(self):
-        #~ del self.parent.motorWindows[self.id]
-        #~ self.window.destroy()
+    def destroy(self):
+        import rospy
+        self.dxlros.stop()
+        #~ rospy.shutdown()        
+        self.parent.rosWindow=None
+        self.window.destroy()
     
-    #~ def set(self,register,value):
-        #~ print str(register)+" "+str(value)
-        #~ self.parent.chain.set_reg(self.id,register,int(value))
-
-
 
 
 class MotorsWindow:
@@ -133,6 +141,8 @@ class MainWindow:
         self.master=master
 
         self.motorsWindow=None
+        self.rosWindow=None
+        
         self.chain=None
 
         self.width=800
@@ -187,6 +197,10 @@ class MainWindow:
 
         Button(self.frame,text="Show Motors",command=lambda: self.createMotorsWindow()).grid(column=11,row=9)
         
+        if "--ros" in sys.argv:
+            Button(self.frame,text="Start ROS Raw",command=lambda: self.createRosWindowRaw()).grid(column=11,row=10)
+            Button(self.frame,text="Start ROS SI",command=lambda: self.createRosWindowSI()).grid(column=11,row=11)
+        
         
         self.frame.pack()
         
@@ -198,7 +212,20 @@ class MainWindow:
         if self.motorsWindow==None:
             self.motorsWindow=MotorsWindow(self.master,self)
         
-        
+    def createRosWindowRaw(self):
+        if not self.chain:
+            tkMessageBox.showerror("Chain Error","Please connect to a valid chain first")
+            return
+        if self.rosWindow==None:
+            self.rosWindow=RosWindow(self.master,self,raw=True)
+                
+    def createRosWindowSI(self):
+        if not self.chain:
+            tkMessageBox.showerror("Chain Error","Please connect to a valid chain first")
+            return
+        if self.rosWindow==None:
+            self.rosWindow=RosWindow(self.master,self,raw=False)
+                
     def exit(self,event=None):
         self.close()
         self.master.destroy()
@@ -212,6 +239,9 @@ class MainWindow:
         if self.motorsWindow:
             self.motorsWindow.destroy()
             self.motorsWindow=None
+        if self.rosWindow:
+            self.rosWindow.destroy()
+            self.rosWindow=None
         if self.chain:
             try:
                 self.chain.close()
@@ -301,9 +331,20 @@ class MainWindow:
     def deactivate(self):
         self.set_chain_reg("torque_enable",0)
 
+
+if "--ros" in sys.argv:
+    import rospy
+    rospy.init_node("dxl")
+
+
 appname="DynamixelLab"
+
 root = Tk()
 root.title(appname)
 mainwindow = MainWindow(root)
 root.protocol("WM_DELETE_WINDOW", mainwindow.exit)
 root.mainloop()
+
+if "--ros" in sys.argv:
+    import rospy
+    rospy.signal_shutdown("End of Application")
