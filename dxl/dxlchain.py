@@ -182,6 +182,7 @@ class DxlChain:
     # Configuration get/set functionalities
     
     def get_motor_list(self,instantiate=True):
+        start=time.time()
         self.motors={}
         ids=self._ping_broadcast()
         l=[]
@@ -193,16 +194,21 @@ class DxlChain:
                 m=DxlMotor.instantiateMotor(model)
                 self.motors[id]=m
                 logging.info("Instantiated motor ID %d model %s (%d)"%(id,m.model_name,model))
+        delay=time.time()-start
+        logging.debug("get_motor_list delay: %f"%delay)
         return l
 
     def get_configuration(self):
         self.get_motor_list()
+        start=time.time()
         d=OrderedDict()
         for (id,m) in self.motors.items():
             dd=OrderedDict()
             d[id]=dd
             for (name,r) in m.registers.items():
                 dd[name]=self.get_reg(id,name)
+        delay=time.time()-start
+        logging.debug("get_configuration reg delay: %f"%delay)
         return d
         
     def set_configuration(self,conf):
