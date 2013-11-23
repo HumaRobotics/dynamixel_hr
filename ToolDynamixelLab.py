@@ -53,7 +53,7 @@ class RosWindow(Thread):
         import rospy
         from dxl import dxlros
         rospy.init_node("dxl")
-        self.dxlros=dxlros.DxlROS(self.chain,rate=10,raw=self.raw)
+        self.dxlros=dxlros.DxlROS(self.chain,rate=100,raw=self.raw)
         rospy.spin()        
         
     def destroy(self):
@@ -264,6 +264,9 @@ class MainWindow:
                 if len(motors)>0:
                     selected_rate=rate
                 #~ chain.dump()
+            except dxlcore.DxlConfigurationException,e:
+                tkMessageBox.showerror("Configuration Error","Could not instantiate motor: \n"+str(e))
+                return
             finally:
                 self.close()
         
@@ -307,8 +310,10 @@ class MainWindow:
         except SerialException,e:
             tkMessageBox.showerror("Serial Error","Could not open serial port: \n"+str(e))
             return
-        self.conf=self.chain.get_configuration()
-        #~ self.chain.dump()
+        try:            
+            self.conf=self.chain.get_configuration()
+        except dxlcore.DxlConfigurationException,e:
+            tkMessageBox.showerror("Configuration Error","Could not instantiate motor: \n"+str(e))
         self.showConfig(self.conf)
 
     def showConfig(self,config):

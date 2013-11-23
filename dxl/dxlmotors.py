@@ -36,9 +36,9 @@ class DxlMotor(object):
             logging.info( "Registered Dynamixel Motor model %s (%d): "%(model_cls.model_name,model_number)+str(model_cls) )
 
     @classmethod
-    def instantiateMotor(cls,model_number):
+    def instantiateMotor(cls,id,model_number):
         if not model_number in cls.DxlModels.keys():
-            raise DxlConfigurationException,"Cannot instantiate non-existing motor model %d "%(name,model_number)
+            raise DxlConfigurationException,"Cannot instantiate non registered motor model %d on ID %d"%(model_number,id)
         mcls=cls.DxlModels[model_number]
         return mcls()
         
@@ -134,6 +134,26 @@ class DxlMotorAX12(DxlMotorAXMX):
         self.sort()
                 
         
+
+class DxlMotorAX18(DxlMotorAXMX):
+    __metaclass__=ModelRegisteringMetaclass
+    model_name="AX18"
+    model_number=18
+    tick_to_rad=0.00506145483078355577307870322862
+    
+    def __init__(self):
+        DxlMotorAXMX.__init__(self)
+
+        self.registers["cw_compliance_margin"]= DxlRegisterByte(0x1A,'rw')
+        self.registers["ccw_compliance_margin"]=DxlRegisterByte(0x1B,'rw')
+        self.registers["cw_compliance_slope"]=  DxlRegisterByte(0x1C,'rw')
+        self.registers["ccw_compliance_slope"]= DxlRegisterByte(0x1D,'rw')
+
+        self.registers["goal_pos"]=             DxlRegisterWord(0x1E,'rw',range=[0,1023],tosi=self.pos_to_si,fromsi=self.si_to_pos)
+        self.registers["moving_speed"]=         DxlRegisterWord(0x20,'rw',range=[0,1023])
+
+        self.sort()
+                
         
 
 class DxlMotorMX28(DxlMotorAXMX):

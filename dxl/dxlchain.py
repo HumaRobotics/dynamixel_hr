@@ -198,7 +198,7 @@ class DxlChain:
             logging.info("Found motor ID %d model %d"%(id,model))
             l.append(id)
             if instantiate:
-                m=DxlMotor.instantiateMotor(model)
+                m=DxlMotor.instantiateMotor(id,model)
                 self.motors[id]=m
                 logging.info("Instantiated motor ID %d model %s (%d)"%(id,m.model_name,model))
         delay=time.time()-start
