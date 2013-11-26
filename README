@@ -1,10 +1,25 @@
-INSTALLATION
+OVERVIEW
+--------
+dynamixel_hr is a python library for programming Robotis Dynamixel motors directly from python or through the ROS bindings provided.
+It also comes with a GUI that allows to quickly identify/configure/manipulate your motors and expose them to a ROS master.
+
+
+MODELS SUPPORTED
 ----------------
+At the moment it can handle the following models: AX12*, AX18*, MX28*, MX64*.
+However adding your own models is very easy, take a look at the file dxlmotors.py.
+
+INSTALLATION
+------------
+
 
 Win 7:
+Setup drivers for USB2Dynamixel
     - Install FTDI driver for USB2Dynamixel http://www.ftdichip.com/Drivers/CDM/CDM20830_Setup.exe (doc: http://www.ftdichip.com/Drivers/VCP.htm  )
     - Follow instructions from http://support.robotis.com/en/software/dynamixel_sdk/usb2dynamixel/usb2dxl_windows.htm
     - Set USB: Port 21, max baudrate, delay 1
+
+
     - Install pyserial: https://pypi.python.org/packages/any/p/pyserial/pyserial-2.7.win32.exe#md5=21555387937eeb79126cde25abee4b35
     
     
