@@ -96,6 +96,8 @@ class MotorsWindow:
         model_name=self.chain.motors[id].model_name
         Label(self.frame,text="MOTOR %d %s"%(id,model_name)).grid(column=self.column,row=self.row,columnspan=2)
         self.row+=1
+        #~ Separator(self.frame,orient=HORIZONTAL,sticky='ew').grid(column=self.column,row=self.row,columnspan=2)
+        #~ self.row+=1
         motor=self.chain.motors[id]
         #~ for rname,reg in motor.registers.items():
             #~ if 'w' in reg.mode and not reg.eeprom:
@@ -200,6 +202,11 @@ class MainWindow:
         if "--ros" in sys.argv:
             Button(self.frame,text="Start ROS Raw",command=lambda: self.createRosWindowRaw()).grid(column=11,row=10)
             Button(self.frame,text="Start ROS SI",command=lambda: self.createRosWindowSI()).grid(column=11,row=11)
+
+        
+        #~ Button(self.frame,text="SyncPos",command=lambda: self.test()).grid(column=11,row=12)
+        #~ Button(self.frame,text="SyncSpeed",command=lambda: self.test2()).grid(column=11,row=13)
+        
         
         
         self.frame.pack()
@@ -234,7 +241,19 @@ class MainWindow:
         self.close()
         comPort=self.comPort.get()
         self.chain=dxlchain.DxlChain(comPort,rate=rate)
+        
 
+    def test(self):
+        ids=[10,11]
+        positions=[200,800]
+        self.chain.sync_write_pos(ids,positions)
+        
+    def test2(self):
+        ids=[10,11]
+        positions=[200,800]
+        speeds=[30,100]
+        self.chain.sync_write_pos_speed(ids,positions,speeds)
+        
     def close(self):
         if self.motorsWindow:
             self.motorsWindow.destroy()
@@ -266,6 +285,9 @@ class MainWindow:
                 #~ chain.dump()
             except dxlcore.DxlConfigurationException,e:
                 tkMessageBox.showerror("Configuration Error","Could not instantiate motor: \n"+str(e))
+                return
+            except dxlcore.DxlCommunicationException,e:
+                tkMessageBox.showerror("Communication Error","Could not communicate with motor (could be due to overlapping IDs, try on single motors): \n"+str(e))
                 return
             finally:
                 self.close()

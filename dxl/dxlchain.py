@@ -178,6 +178,86 @@ class DxlChain:
             raise DxlCommunicationException,'Motor ID %d did not retrieve expected register %s size %d: got %d bytes'%(id,name,esize,len(data)) 
 
     
+    def sync_write_pos_speed(self,ids,positions,speeds): 
+        regpos=None
+        regspeed=None
+        # Check motor IDs, goal_pos and moving_speed register address and sizes
+        for id in ids:
+            if id not in self.motors.keys():
+                raise DxlConfigurationException,"Motor ID %d cannot be found in chain"%id
+            m=self.motors[id]
+            reg_name="goal_pos"
+            if reg_name not in m.registers.keys():
+                raise DxlConfigurationException,"Synchronized write %s impossible on chain, register absent from motor ID %d"%(reg_name,id)
+            r=m.registers[reg_name]
+            if regpos==None:
+                regpos=r
+            else:
+                if regpos.address!=r.address:
+                    raise DxlConfigurationException,"Synchronized write %s impossible on chain, mismatch in register address for motor ID %d"%(reg_name,id)
+                if regpos.size!=r.size:
+                    raise DxlConfigurationException,"Synchronized write %s impossible on chain, mismatch in register size for motor ID %d"(reg_name,id)
+
+            reg_name="moving_speed"
+            if reg_name not in m.registers.keys():
+                raise DxlConfigurationException,"Synchronized write %s impossible on chain, register absent from motor ID %d"%(reg_name,id)
+            r=m.registers[reg_name]
+            if regspeed==None:
+                regspeed=r
+            else:
+                if regspeed.address!=r.address:
+                    raise DxlConfigurationException,"Synchronized write %s impossible on chain, mismatch in register address for motor ID %d"%(reg_name,id)
+                if regspeed.size!=r.size:
+                    raise DxlConfigurationException,"Synchronized write %s impossible on chain, mismatch in register size for motor ID %d"(reg_name,id)
+                
+        if (regpos.address+regpos.size)!=regspeed.address:
+            raise DxlConfigurationException,"Synchronized write goal_pos/moving_speed impossible on chain, registers are not consecutive"
+            
+        # Everything is ok, build command and send
+        payload= [Dxl.CMD_SYNC_WRITE,regpos.address,regpos.size+regspeed.size]
+        for i in range(0,len(ids)):
+            id=ids[i]
+            pos=positions[i]
+            speed=speeds[i]
+            payload.append(id)
+            payload.extend(regpos.todxl(pos))
+            payload.extend(regspeed.todxl(speed))
+            
+        self.send(Dxl.BROADCAST,payload) 
+            
+
+
+    
+    
+    def sync_write_pos(self,ids,positions):
+        reg=None
+        # Check motor IDs, goal_pos and moving_speed register address and sizes
+        for id in ids:
+            if id not in self.motors.keys():
+                raise DxlConfigurationException,"Motor ID %d cannot be found in chain"%id
+            m=self.motors[id]
+            reg_name="goal_pos"
+            if reg_name not in m.registers.keys():
+                raise DxlConfigurationException,"Synchronized write %s impossible on chain, register absent from motor ID %d"%(reg_name,id)
+            r=m.registers[reg_name]
+            if reg==None:
+                reg=r
+            else:
+                if reg.address!=r.address:
+                    raise DxlConfigurationException,"Synchronized write %s impossible on chain, mismatch in register address for motor ID %d"%(reg_name,id)
+                if reg.size!=r.size:
+                    raise DxlConfigurationException,"Synchronized write %s impossible on chain, mismatch in register size for motor ID %d"(reg_name,id)
+                
+        # Everything is ok, build command and send
+        payload= [Dxl.CMD_SYNC_WRITE,reg.address,reg.size]
+        for i in range(0,len(ids)):
+            id=ids[i]
+            pos=positions[i]
+            payload.append(id)
+            payload.extend(reg.todxl(pos))
+            
+        self.send(Dxl.BROADCAST,payload) 
+    
     def to_si(self,id,name,v):        
         reg=self.motors[id].registers[name]
         return reg.tosi(v)
