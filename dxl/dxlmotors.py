@@ -65,6 +65,9 @@ class DxlMotor(object):
 
     def sort(self):
         self.registers = OrderedDict( sorted(self.registers.iteritems(), key=lambda x: x[1].address) )
+        
+    def is_motor(self):
+        return (self.model_number&0xFF)!=0
     
 class DxlMotorAXMX(DxlMotor):
     def __init__(self):
@@ -191,3 +194,27 @@ class DxlMotorMX64(DxlMotorAXMX):
         self.registers["moving_speed"]=         DxlRegisterWord(0x20,'rw',range=[0,1023])
         
         self.sort()
+        
+        
+
+
+class DxlMotorCM730(DxlMotor):
+    __metaclass__=ModelRegisteringMetaclass
+    model_name="CM730"
+    model_number=29440
+    
+    def __init__(self):
+        DxlMotor.__init__(self)
+
+
+        self.registers["model_number"]=         DxlRegisterWord(0x00,'r',eeprom=True)
+        self.registers["firmware"]=             DxlRegisterByte(0x02,'r',eeprom=True)
+        self.registers["id"]=                   DxlRegisterByte(0x03,'rw',eeprom=True)
+        self.registers["baud_rate"]=            DxlRegisterByte(0x04,'rw',eeprom=True)
+        self.registers["return_delay"]=         DxlRegisterByte(0x05,'rw',eeprom=True)
+        
+        self.registers["dynamixel_power"]=         DxlRegisterByte(0x18,'rw')
+        
+        self.sort()
+                
+                

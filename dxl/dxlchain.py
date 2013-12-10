@@ -275,9 +275,6 @@ class DxlChain:
         l=[]
         for id in ids:
             model=self._get_model(id)
-            if model==29440:
-                logging.info("Skipping Controller board on %d %d"%(id,model))
-                continue
             logging.info("Found motor ID %d model %d"%(id,model))
             l.append(id)
             if instantiate:

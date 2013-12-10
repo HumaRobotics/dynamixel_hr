@@ -87,28 +87,30 @@ class MotorsWindow:
             self.generate(id)            
         
         self.frame.pack()
-        self.master.after(500,self.startUpdating)
+        self.master.after(1000,self.startUpdating)
 
     def startUpdating(self):
         self.update=True
         
     def generate(self,id): 
         model_name=self.chain.motors[id].model_name
-        Label(self.frame,text="MOTOR %d %s"%(id,model_name)).grid(column=self.column,row=self.row,columnspan=2)
-        self.row+=1
-        #~ Separator(self.frame,orient=HORIZONTAL,sticky='ew').grid(column=self.column,row=self.row,columnspan=2)
-        #~ self.row+=1
         motor=self.chain.motors[id]
-        #~ for rname,reg in motor.registers.items():
-            #~ if 'w' in reg.mode and not reg.eeprom:
-                #~ self.addRegister(id,rname)
-        
-        self.addRegister(id,"goal_pos")        
-        self.addRegister(id,"moving_speed")
-        #~ self.addRegister(id,"p_gain")
-        if self.row>16:
-            self.row=0
-            self.column+=2
+        if motor.is_motor():
+            
+            Label(self.frame,text="MOTOR %d %s"%(id,model_name)).grid(column=self.column,row=self.row,columnspan=2)
+            self.row+=1
+            #~ Separator(self.frame,orient=HORIZONTAL,sticky='ew').grid(column=self.column,row=self.row,columnspan=2)
+            #~ self.row+=1
+            #~ for rname,reg in motor.registers.items():
+                #~ if 'w' in reg.mode and not reg.eeprom:
+                    #~ self.addRegister(id,rname)
+            
+            self.addRegister(id,"goal_pos")        
+            self.addRegister(id,"moving_speed")
+            #~ self.addRegister(id,"p_gain")
+            if self.row>16:
+                self.row=0
+                self.column+=2
 
     def addRegister(self,id,register):
         Label(self.frame,text=register).grid(column=self.column,row=self.row)
