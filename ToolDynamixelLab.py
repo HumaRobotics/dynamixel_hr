@@ -106,7 +106,7 @@ class MotorsWindow:
         self.addRegister(id,"goal_pos")        
         self.addRegister(id,"moving_speed")
         #~ self.addRegister(id,"p_gain")
-        if self.row>10:
+        if self.row>16:
             self.row=0
             self.column+=2
 

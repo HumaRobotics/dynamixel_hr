@@ -26,7 +26,7 @@ class DxlChain:
     Provides thread-safe access to the chain
     """
 
-    def __init__(self, portname,rate=57142,timeout=0.04):
+    def __init__(self, portname,rate=57142,timeout=1):
         """
         DO NOT CHANGE THE DEFAULT BAUDRATE HERE: 57142 is the factory setting of Dynamixel motors
         """
@@ -93,7 +93,7 @@ class DxlChain:
             # Read number of expected bytes
             data=array.array('B',self.port.read(expectedsize))
             if len(data)!=expectedsize:
-                raise DxlCommunicationException('Could not read %d data bytes of expected response, got %d bytes'%(len(expectedsize),len(data)))
+                raise DxlCommunicationException('Could not read %d data bytes of expected response, got %d bytes'%(expectedsize,len(data)))
                 
             error=data[0]
             if error!=0:
@@ -275,6 +275,9 @@ class DxlChain:
         l=[]
         for id in ids:
             model=self._get_model(id)
+            if model==29440:
+                logging.info("Skipping Controller board on %d %d"%(id,model))
+                continue
             logging.info("Found motor ID %d model %d"%(id,model))
             l.append(id)
             if instantiate:
