@@ -22,11 +22,14 @@ from collections import OrderedDict
         
 class DxlChain:
     """
-    Manages a list of Dynamixel motors on the same serial link
-    Provides thread-safe access to the chain
+    Manages a list of Dynamixel motors on the same serial link.
+    Provides thread-safe access to the chain.
+    
+    Instantiate by passing the serial device (COMXX or /dev/ttyUSBX) and the baudrate to use.
+    If the chain is unknown you can directly call get_motor_list to obtain the list of available motors.
     """
 
-    def __init__(self, portname,rate=57142,timeout=0.04):
+    def __init__(self, portname,rate=57142,timeout=1):
         """
         DO NOT CHANGE THE DEFAULT BAUDRATE HERE: 57142 is the factory setting of Dynamixel motors
         """
@@ -43,6 +46,7 @@ class DxlChain:
     # Low-level communication (Thread unsafe functions with _)
     
     def open(self):
+        """Opens the serial port"""
         with self.lock:
             self._open()
 
@@ -51,6 +55,7 @@ class DxlChain:
         self.port=serial.Serial(self.portname,self.rate,timeout=self.timeout)    
 
     def close(self):
+        """Closes the serial port"""
         with self.lock:
             self._close()
 
@@ -62,11 +67,13 @@ class DxlChain:
             logging.warning("Could not close port %s"%self.portname)
     
     def reopen(self):
+        """Reopens the serial port"""
         with self.lock:
             self._close()
             self._open()
 
     def send(self,id,packet):
+        """Sends an instruction packet to a given ID. Header, length and checksum will be automatically added"""
         with self.lock:
             self._send(id,packet)
             
@@ -79,11 +86,12 @@ class DxlChain:
         self.port.flushOutput()
 
     def recv(self):
+        """Wait for a response on the serial, validate it, raise errors if any, return id and data if any"""
         with self.lock:
             return self._recv()
 
     def _recv(self):
-        """ Wait for a response on the serial, validate it, raise errors if any, return id and data if any """
+        """Wait for a response on the serial, validate it, raise errors if any, return id and data if any """
         # Read the first 4 bytes 0xFF,0xFF,id,length
         header = array.array('B',self.port.read(4))
         if(len(header)!=4):
@@ -93,7 +101,7 @@ class DxlChain:
             # Read number of expected bytes
             data=array.array('B',self.port.read(expectedsize))
             if len(data)!=expectedsize:
-                raise DxlCommunicationException('Could not read %d data bytes of expected response, got %d bytes'%(len(expectedsize),len(data)))
+                raise DxlCommunicationException('Could not read %d data bytes of expected response, got %d bytes'%(expectedsize,len(data)))
                 
             error=data[0]
             if error!=0:
@@ -108,6 +116,7 @@ class DxlChain:
             return (id,data)
 
     def comm(self,id,packet):
+        """Communicate with the Dynamixel by sending a packet and retrieving the response"""
         with self.lock:
             return self._comm(id,packet)
 
@@ -116,14 +125,20 @@ class DxlChain:
         return self._recv()
 
     def checksum(self,values):
-        """ Compute packet checksum """
+        """Compute packet checksum."""
         return (~sum(values))&0xFF
 
 
 
     # Basic commands
     
+    def ping(self,id):
+        """Sends a ping packet to a motor, raises an exception if no answer is received"""
+        with self.lock:
+            self._ping(id)
+            
     def _ping(self,id):
+        """Sends a ping packet to a motor, raises an exception if no answer is received"""
         self._send(id,[Dxl.CMD_PING])
         self._recv()
         
@@ -141,16 +156,19 @@ class DxlChain:
 
 
     def _read(self,id,address,size):
+        """Read data from the registers of a motor"""
         data=self._comm(id,[Dxl.CMD_READ_DATA,address,size])[1]
         if len(data)!=size:
             raise DxlCommunicationException('Read command did not obtain the %d bytes expected: got %d bytes'%(size,len(data)))
         return data
 
     def _write(self,id,address,values):        
+        """Write data to a motor registers"""
         self._comm(id,[Dxl.CMD_WRITE_DATA,register,values])
 
 
     def _get_model(self,id):
+        """Obtain the model number of a motor"""
         data=self._read(id,0,2)
         return (data[1]<<8)+data[0]
 
@@ -158,6 +176,7 @@ class DxlChain:
     # Register Access
 
     def get_reg(self,id,name):
+        """Read a named register from a motor"""
         m=self.motors[id]
         reg=m.registers[name]
         (esize,cmd)=m.getRegisterCmd(name)
@@ -169,6 +188,7 @@ class DxlChain:
         return v
 
     def set_reg(self,id,name,v):
+        """Sets a named register on a motor"""
         m=self.motors[id]
         reg=m.registers[name]
         (esize,cmd)=m.setRegisterCmd(name,reg.todxl(v))
@@ -179,6 +199,7 @@ class DxlChain:
 
     
     def sync_write_pos_speed(self,ids,positions,speeds): 
+        """Performs a synchronized write of 'goal_pos' and 'moving_speed' registers for a set of motors (if possible)"""
         regpos=None
         regspeed=None
         # Check motor IDs, goal_pos and moving_speed register address and sizes
@@ -230,6 +251,7 @@ class DxlChain:
     
     
     def sync_write_pos(self,ids,positions):
+        """Performs a synchronized write of 'goal_pos' register for a set of motors (if possible)"""
         reg=None
         # Check motor IDs, goal_pos and moving_speed register address and sizes
         for id in ids:
@@ -259,16 +281,19 @@ class DxlChain:
         self.send(Dxl.BROADCAST,payload) 
     
     def to_si(self,id,name,v):        
+        """Converts a motor register value from dynamixel format to SI units"""
         reg=self.motors[id].registers[name]
         return reg.tosi(v)
 
     def from_si(self,id,name,v):
+        """Converts a motor register value from SI units to dynamixel format"""
         reg=self.motors[id].registers[name]
         return reg.fromsi(v)
 
     # Configuration get/set functionalities
     
     def get_motor_list(self,instantiate=True):
+        """Obtains the list of motors available on a chain, and optionally tries to instantiante them."""
         start=time.time()
         self.motors={}
         ids=self._ping_broadcast()
@@ -286,6 +311,7 @@ class DxlChain:
         return l
 
     def get_configuration(self):
+        """Obtain the list of motors on a chain, read and return their full configuration"""
         self.get_motor_list()
         start=time.time()
         d=OrderedDict()
@@ -299,6 +325,7 @@ class DxlChain:
         return d
         
     def set_configuration(self,conf):
+        """Compare the motors available on a chain to those specified in the provided configuration, silently try to set all registers, generates an exception if there is a mismatch"""
         d={}
         self.get_motor_list()
         for id in conf.keys():
@@ -334,10 +361,12 @@ class DxlChain:
                     self.set_reg(iid,name,val) # if writable set it
 
     def dump(self):
+        """Obtain the motors chain configuration and dumps it on stdout"""
         conf=self.get_configuration()
         print json.dumps(conf,indent=4,sort_keys=False)
 
     def enable(self,state=True):
+        """Enable or disable all the motors on the chain"""
         v=0
         if state:
             v=1
@@ -345,5 +374,6 @@ class DxlChain:
             self.set_reg(id,"torque_enable",v)
     
     def disable(self):
+        """Disable all the motors on the chain"""
         self.enable(False)
         
