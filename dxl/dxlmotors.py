@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-# Dynamixel library for MX28 and MX64
 
 # WINDOWS WARNING: For best performance, parameters of the COM Port should be set to maximum baud rate, and 1ms delay (Device Manager, COM Ports, properties, advanced)
 
@@ -9,6 +8,15 @@ from dxlregisters import *
 
 
 
+
+
+class DxlMotor(DxlElement):    
+    def __init__(self):
+        DxlElement.__init__(self)
+
+    def is_motor(self):
+        return True
+    
 
 
     
@@ -137,34 +145,3 @@ class DxlMotorMX64(DxlMotorAXMX):
         self.registers["moving_speed"]=         DxlRegisterWord(0x20,'rw',range=[0,1023])
         
         self.sort()
-        
-        
-
-
-class DxlMotorCM730(DxlController):
-    __metaclass__=ModelRegisteringMetaclass
-    model_name="CM730"
-    model_number=29440
-    
-    def __init__(self):
-        DxlController.__init__(self)
-
-
-        self.registers["model_number"]=         DxlRegisterWord(0x00,'r',eeprom=True)
-        self.registers["firmware"]=             DxlRegisterByte(0x02,'r',eeprom=True)
-        self.registers["id"]=                   DxlRegisterByte(0x03,'rw',eeprom=True)
-        self.registers["baud_rate"]=            DxlRegisterByte(0x04,'rw',eeprom=True)
-        self.registers["return_delay"]=         DxlRegisterByte(0x05,'rw',eeprom=True)
-        
-        self.registers["dynamixel_power"]=         DxlRegisterByte(0x18,'rw')
-        self.registers["gyro_z"]=         DxlRegisterWord(0x26,'rw')
-        self.registers["gyro_y"]=         DxlRegisterWord(0x28,'rw')
-        self.registers["gyro_x"]=         DxlRegisterWord(0x2A,'rw')        
-        
-        self.registers["acc_x"]=         DxlRegisterWord(0x2C,'rw')
-        self.registers["acc_y"]=         DxlRegisterWord(0x2E,'rw')
-        self.registers["acc_z"]=         DxlRegisterWord(0x30,'rw')        
-        
-        self.sort()
-                
-                

@@ -82,22 +82,3 @@ class DxlElement(object):
         self.registers = OrderedDict( sorted(self.registers.iteritems(), key=lambda x: x[1].address) )
         
 
-
-
-
-
-class DxlMotor(DxlElement):    
-    def __init__(self):
-        DxlElement.__init__(self)
-
-    def is_motor(self):
-        return True
-    
-
-class DxlController(DxlElement):
-    def __init__(self):
-        DxlElement.__init__(self)
-
-    def is_motor(self):
-        return False
-    
