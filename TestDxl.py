@@ -5,6 +5,7 @@
 # WINDOWS WARNING: For best performance, parameters of the COM Port should be set to maximum baud rate, and 1ms delay (Device Manager, COM Ports, properties, advanced)
 
 from dxl import dxlchain
+from dxl.dxlcore import *
 
 import sys
 import serial
@@ -78,8 +79,11 @@ def testAX12(chain):
     chain.set_reg(1,"torque_enable",0)
 
 if __name__ == "__main__":    
-    chain=dxlchain.DxlChain("COM21", rate=3000000)
-    chain.dump()
+    chain=dxlchain.DxlChain("/dev/ttyUSB0", rate=1000000,timeout=1)
+    print chain.get_motor_list(instantiate=False)
+    chain.send(200,[Dxl.CMD_WRITE_DATA,24,1])
+    #~ chain.dump()
+    chain._ping(200)
     #~ testAX12(chain)
-    testArm(chain)
+    #~ testArm(chain)
     chain.close()

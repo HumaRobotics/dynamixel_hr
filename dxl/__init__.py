@@ -1,1 +1,1 @@
-__all__=["dxlcore","dxlregisters","dxlmotors","dxlchain"]
+__all__=["dxlcore","dxlregisters","dxlmotors","dxlcontrollers","dxlchain"]
