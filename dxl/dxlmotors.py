@@ -7,67 +7,10 @@
 from dxlcore import *
 from dxlregisters import *
 
-import logging
-from collections import OrderedDict
 
 
 
 
-class ModelRegisteringMetaclass(type):
-    def __new__(cls, name, bases, attrs):
-        inst=type.__new__(cls, name,bases,attrs)        
-        DxlMotor.registerModel(inst.model_number,inst)        
-        return inst
-        
-
-
-
-class DxlMotor(object):
-    DxlModels={}
-    
-    def __init__(self):
-        self.registers=OrderedDict()        
-    
-    
-    @classmethod
-    def registerModel(cls,model_number,model_cls):
-        if model_number not in cls.DxlModels.keys():
-            cls.DxlModels[model_number]=model_cls
-            logging.info( "Registered Dynamixel Motor model %s (%d): "%(model_cls.model_name,model_number)+str(model_cls) )
-
-    @classmethod
-    def instantiateMotor(cls,id,model_number):
-        if not model_number in cls.DxlModels.keys():
-            raise DxlConfigurationException,"Cannot instantiate non registered motor model %d on ID %d"%(model_number,id)
-        mcls=cls.DxlModels[model_number]
-        return mcls()
-        
-
-        
-    def getRegisterCmd(self,name):
-        if not name in self.registers.keys():
-            raise DxlConfigurationException,"Model %s has no register called %s"%(name,self.model_name)
-        r=self.registers[name]
-        if not 'r' in r.mode:
-            raise DxlConfigurationException,"Register %s is not readable"%(name)
-        return (r.size,[Dxl.CMD_READ_DATA,r.address,r.size])
-
-    def setRegisterCmd(self,name,value):
-        if not name in self.registers.keys():
-            raise DxlConfigurationException,"Model %s has no register called %s"%(self.model_name,name)
-        r=self.registers[name]
-        if not 'w' in r.mode:
-            raise DxlConfigurationException,"Register %s is not writable"%(name)
-        if r.size!=len(value):
-            raise DxlConfigurationException,"Model %s register %s has size %d: passed size %d"%(self.model_name,name,r.size,len(value))
-            
-        return (0,[Dxl.CMD_WRITE_DATA,r.address]+value )
-
-    def sort(self):
-        self.registers = OrderedDict( sorted(self.registers.iteritems(), key=lambda x: x[1].address) )
-        
-    def is_motor(self):
-        return (self.model_number&0xFF)!=0
     
 class DxlMotorAXMX(DxlMotor):
     def __init__(self):
@@ -198,13 +141,13 @@ class DxlMotorMX64(DxlMotorAXMX):
         
 
 
-class DxlMotorCM730(DxlMotor):
+class DxlMotorCM730(DxlController):
     __metaclass__=ModelRegisteringMetaclass
     model_name="CM730"
     model_number=29440
     
     def __init__(self):
-        DxlMotor.__init__(self)
+        DxlController.__init__(self)
 
 
         self.registers["model_number"]=         DxlRegisterWord(0x00,'r',eeprom=True)
@@ -214,6 +157,13 @@ class DxlMotorCM730(DxlMotor):
         self.registers["return_delay"]=         DxlRegisterByte(0x05,'rw',eeprom=True)
         
         self.registers["dynamixel_power"]=         DxlRegisterByte(0x18,'rw')
+        self.registers["gyro_z"]=         DxlRegisterWord(0x26,'rw')
+        self.registers["gyro_y"]=         DxlRegisterWord(0x28,'rw')
+        self.registers["gyro_x"]=         DxlRegisterWord(0x2A,'rw')        
+        
+        self.registers["acc_x"]=         DxlRegisterWord(0x2C,'rw')
+        self.registers["acc_y"]=         DxlRegisterWord(0x2E,'rw')
+        self.registers["acc_z"]=         DxlRegisterWord(0x30,'rw')        
         
         self.sort()
                 
