@@ -27,7 +27,11 @@ class Dxl:
     CMD_SYNC_WRITE = 0x83
 
 
-
+def get_model_name(model_number):
+    try:
+        return DxlElements.DxlModels[model_number]
+    except:
+        return "Unknown model %d"%model_number
 
 class ModelRegisteringMetaclass(type):
     def __new__(cls, name, bases, attrs):

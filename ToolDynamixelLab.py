@@ -14,6 +14,7 @@ from serial import SerialException
 
 
 from dxl import *
+from dxl.dxlcore import *
 
 searchRates=[57142,3000000,1000000,9600]
 
@@ -178,10 +179,15 @@ class MainWindow:
         Button(self.frame,text="Connect",command=self.connect).grid(column=5,row=0)
 
 
+        self.listElements = Listbox(self.frame,width=16,height=20,selectmode=EXTENDED)
+        self.listElements.grid(row=1,column=0,rowspan=10)
+        #~ self.listStates.bind("<Double-Button-1>", self.setVar)
+        #~ self.listStates.bind("<Delete>", self.deleteVars)
+
 
         # Text field for configuration with scrollbars
         self.textConfig=Text(self.frame,width=50,height=30)
-        self.textConfig.grid(column=0,row=2,columnspan=10,rowspan=10)
+        self.textConfig.grid(column=1,row=2,columnspan=10,rowspan=10)
         self.textConfig.insert(END,"{}")
         
         scrly = Scrollbar(self.frame, command=self.textConfig.yview)
@@ -272,6 +278,7 @@ class MainWindow:
         
     def scan(self):
         selected_rate=None
+        self.listElements.delete(0,END)
         for rate in searchRates:            
             try:
                 self.open(rate)
@@ -281,6 +288,11 @@ class MainWindow:
                 
             try:
                 motors=self.chain.get_motor_list(instantiate=False)                
+                for id in motors:
+                    model_number=self.chain.get_model_number(id)
+                    model_name=get_model_name(model_number)
+                    self.listElements.insert(END, "Rate %d ID %d (%s)\n"%(rate,id,model_name))
+
                 print "rate %d: %s"%(rate,str(motors))
                 if len(motors)>0:
                     selected_rate=rate

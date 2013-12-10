@@ -167,6 +167,11 @@ class DxlChain:
         self._comm(id,[Dxl.CMD_WRITE_DATA,register,values])
 
 
+    def get_model_number(self,id):
+        """Obtain the model number of a motor"""
+        with self.lock:
+            return self._get_model(id)
+            
     def _get_model(self,id):
         """Obtain the model number of a motor"""
         data=self._read(id,0,2)
