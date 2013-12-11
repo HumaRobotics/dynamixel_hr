@@ -216,12 +216,13 @@ class MainWindow:
         return frame
 
     def buildListFrame(self):
-        frame=LabelFrame(self.frame,text="Motor List")
+        frame=LabelFrame(self.frame,text="Motor List (use right button)")
         self.listElements = Listbox(frame,width=50,height=20)
         self.listElements.grid(row=0,column=0)
         self.popup = Menu(self.master, tearoff=0)
         self.popup.add_command(label="Change ID",command=self.changeMotorID)
-        self.popup.add_command(label="Change baudrate",command=self.changeMotorBaudrate)        
+        self.popup.add_command(label="Change baudrate",command=self.changeMotorBaudrate)
+        self.popup.add_command(label="Open documentation",command=self.openDocumentation)
         self.listElements.bind("<Button-3>", self.do_popup)        
         return frame
 
@@ -346,7 +347,16 @@ class MainWindow:
             if answer:
                 self.chain.set_reg(id,"baud_rate",dxlrate)                
                 self.connect()
-        
+
+    def openDocumentation(self):
+        id=self.getSelectedMotor()
+        if id<0:
+            tkMessageBox.showerror("Selection Error","Please select a motor first")
+        else:
+            import webbrowser
+            url=self.chain.motors[id].documentation_url
+            webbrowser.open(url)
+
         
     def createMotorsWindow(self):
         if not self.chain:

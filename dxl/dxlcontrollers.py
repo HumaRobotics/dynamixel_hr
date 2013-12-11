@@ -20,6 +20,7 @@ class DxlControllerCM730(DxlController):
     __metaclass__=ModelRegisteringMetaclass
     model_name="CM730"
     model_number=29440
+    documentation_url="http://support.robotis.com/en/product/darwin-op/references/reference/hardware_specifications/electronics/sub_controller_%28cm-730%29.htm"
     
     def __init__(self):
         DxlController.__init__(self)
