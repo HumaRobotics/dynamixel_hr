@@ -527,7 +527,11 @@ if "--ros" in sys.argv:
 root = Tk()
 appname="DynamixelLab"
 root.title(appname)
-root.iconbitmap(default="humarobotics.ico")
+try:
+    root.iconbitmap(default="humarobotics.ico")
+except:
+    logging.warning("Could not load icon")
+    
 
 mainwindow = MainWindow(root)
 root.protocol("WM_DELETE_WINDOW", mainwindow.exit)
