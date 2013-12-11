@@ -29,7 +29,7 @@ class DxlChain:
     If the chain is unknown you can directly call get_motor_list to obtain the list of available motors.
     """
 
-    def __init__(self, portname,rate=57142,timeout=1):
+    def __init__(self, portname,rate=57142,timeout=0.5):
         """
         DO NOT CHANGE THE DEFAULT BAUDRATE HERE: 57142 is the factory setting of Dynamixel motors
         """
@@ -103,16 +103,18 @@ class DxlChain:
             if len(data)!=expectedsize:
                 raise DxlCommunicationException('Could not read %d data bytes of expected response, got %d bytes'%(expectedsize,len(data)))
                 
-            error=data[0]
-            if error!=0:
-                # TODO Distinguish communication/Hardware errors
-                raise DxlCommunicationException('Received error code from motor %d: %d'%(id,error))
-            
-            checksum=self.checksum(header[2:]+data[:-1])
-            if checksum!=data[-1]:
-                raise DxlCommunicationException('Invalid checksum')
-            data=data[1:-1]
-            #~ print data
+            if len(data)>0:
+                error=data[0]
+
+                if error!=0 and error!=2: # skip angle errors
+                    # TODO Distinguish communication/Hardware errors
+                    raise DxlCommunicationException('Received error code from motor %d: %d'%(id,error))
+                
+                checksum=self.checksum(header[2:]+data[:-1])
+                if checksum!=data[-1]:
+                    raise DxlCommunicationException('Invalid checksum')
+                data=data[1:-1]
+                #~ print data
             return (id,data)
 
     def comm(self,id,packet):
@@ -297,23 +299,33 @@ class DxlChain:
 
     # Configuration get/set functionalities
     
-    def get_motor_list(self,instantiate=True):
-        """Obtains the list of motors available on a chain, and optionally tries to instantiante them."""
-        start=time.time()
-        self.motors={}
-        ids=self._ping_broadcast()
-        l=[]
-        for id in ids:
-            model=self._get_model(id)
-            logging.info("Found motor ID %d model %d"%(id,model))
-            l.append(id)
-            if instantiate:
-                m=DxlMotor.instantiateMotor(id,model)
-                self.motors[id]=m
-                logging.info("Instantiated motor ID %d model %s (%d)"%(id,m.model_name,model))
-        delay=time.time()-start
-        logging.debug("get_motor_list delay: %f"%delay)
-        return l
+    def get_motor_list(self,broadcast=True,instantiate=True):
+        with self.lock:
+            """Obtains the list of motors available on a chain, and optionally tries to instantiante them."""
+            start=time.time()
+            self.motors={}
+            if broadcast:
+                ids=self._ping_broadcast()
+            else:
+                ids=range(0,Dxl.BROADCAST)
+            logging.info("Scanning IDs :"+str(ids))
+            l=[]            
+            for id in ids:
+                if not broadcast:
+                    try:
+                        self._ping(id)
+                    except:
+                        continue
+                model=self._get_model(id)
+                logging.info("Found motor ID %d model %d"%(id,model))
+                l.append(id)
+                if instantiate:
+                    m=DxlMotor.instantiateMotor(id,model)
+                    self.motors[id]=m
+                    logging.info("Instantiated motor ID %d model %s (%d)"%(id,m.model_name,model))
+            delay=time.time()-start
+            logging.debug("get_motor_list delay: %f"%delay)
+            return l
 
     def get_configuration(self):
         """Obtain the list of motors on a chain, read and return their full configuration"""

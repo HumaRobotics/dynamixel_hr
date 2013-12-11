@@ -10,6 +10,7 @@ from threading import Thread
 
 from Tkinter import *
 import tkMessageBox
+import tkSimpleDialog
 from serial import SerialException
 
 
@@ -179,7 +180,7 @@ class MainWindow:
         Button(self.frame,text="Connect",command=self.connect).grid(column=5,row=0)
 
 
-        self.listElements = Listbox(self.frame,width=16,height=20,selectmode=EXTENDED)
+        self.listElements = Listbox(self.frame,width=50,height=20)
         self.listElements.grid(row=1,column=0,rowspan=10)
         #~ self.listStates.bind("<Double-Button-1>", self.setVar)
         #~ self.listStates.bind("<Delete>", self.deleteVars)
@@ -216,8 +217,57 @@ class MainWindow:
         #~ Button(self.frame,text="SyncSpeed",command=lambda: self.test2()).grid(column=11,row=13)
         
         
+        self.popup = Menu(master, tearoff=0)
+        self.popup.add_command(label="Change ID",command=self.changeMotorID)
+        self.popup.add_command(label="Change baudrate")
+        #~ self.popup.add_command(label="Previous")
+        #~ self.popup.add_command(label="Home")
         
+        self.listElements.bind("<Button-3>", self.do_popup)        
+
         self.frame.pack()
+        
+    def do_popup(self,event):
+        # display the popup menu
+        try:
+            self.popup.tk_popup(event.x_root, event.y_root, 0)
+        finally:
+            # make sure to release the grab (Tk 8.0a1 only)
+            self.popup.grab_release()
+            
+    def getSelectedMotor(self):
+        items = map(int, self.listElements.curselection())    
+        if len(items)==0:
+            return -1
+        else:
+            id=self.chain.motors.keys()[items[0]]
+            return id
+            
+        
+    def changeMotorID(self):
+        oldid=self.getSelectedMotor()
+        if oldid<0:
+            tkMessageBox.showerror("Selection Error","Please select a motor first")
+        else:
+            newid=tkSimpleDialog.askinteger("Change ID","Please provide new ID for motor %d"%oldid)
+            if newid==None:
+                return
+            if oldid==newid:
+                return
+            if newid<1 or newid>Dxl.BROADCAST:
+                tkMessageBox.showerror("Range Error","ID should be between 1 and %d"%(Dxl.BROADCAST-1))
+            else:
+                do=True
+                if newid in self.chain.motors.keys():
+                    answer=tkMessageBox.askyesno("ID Conflict","Warning: the motor ID %d is already attributed on your chain, are you sure you want to proceed?"%(newid))
+                    if not answer:
+                        do=False
+                if do:
+                    self.chain.set_reg(oldid,"id",newid)
+                    self.connect()
+                
+                
+                
         
         
     def createMotorsWindow(self):
@@ -307,10 +357,10 @@ class MainWindow:
                 self.close()
         
         if selected_rate:
-            self.selectRate(selected_rate)
+            self.selectRate(selected_rate,populateList=False)
 
     def connect(self):
-        self.selectRate(self.baudRate.get())
+        self.selectRate(self.baudRate.get(),populateList=True)
 
 
     def set(self):
@@ -338,7 +388,9 @@ class MainWindow:
             tkMessageBox.showerror("Chain Error","Please connect to a valid chain first")
 
 
-    def selectRate(self,rate):
+    def selectRate(self,rate,populateList=False):
+        if populateList:
+            self.listElements.delete(0,END)        
         print "Selected rate %d"%rate
         self.baudRate.set(rate)
         try:
@@ -347,9 +399,15 @@ class MainWindow:
             tkMessageBox.showerror("Serial Error","Could not open serial port: \n"+str(e))
             return
         try:            
-            self.conf=self.chain.get_configuration()
-        except dxlcore.DxlConfigurationException,e:
+            self.conf=self.chain.get_configuration()            
+        except dxlcore.DxlConfigurationException,e:            
             tkMessageBox.showerror("Configuration Error","Could not instantiate motor: \n"+str(e))
+        
+        if populateList:
+            for id in self.chain.motors.keys():
+                model_name=self.chain.motors[id].model_name
+                self.listElements.insert(END, "Rate %d ID %d (%s)\n"%(rate,id,model_name))
+
         self.showConfig(self.conf)
 
     def showConfig(self,config):
