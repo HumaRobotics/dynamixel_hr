@@ -23,6 +23,80 @@ searchRates=[57142,3000000,1000000,9600]
 
 
 
+class Evaluator:
+    def __init__(self):
+        self.symbols={}
+        
+    def bindSymbol(self,name,var):
+        self.symbols[name]=var
+        
+    def perform(self,toeval):
+        if toeval.strip()=="": return None
+        
+        # Wrap in function with return value
+        self.cmd="def _localfunction():\n"
+        for l in toeval.split("\n"):
+            self.cmd+="  "+l+"\n"
+        self.cmd+="_return=_localfunction()"
+        
+        # Build context        
+        context=self.buildContext()
+        #~ for k,v in context.items():
+            #~ print k+" "+str(v)
+        
+        # Execute and retrieve return value
+        exec self.cmd in context
+        return context["_return"]
+    
+    def buildContext(self):
+        # Build context        
+        context=dict(self.symbols)
+        return context
+        
+
+class PythonWindow:
+
+    def __init__(self, master,parent):
+        self.master=master
+        self.parent=parent
+        self.chain=parent.chain
+        
+        self.window=Toplevel(self.master)
+        self.window.title("Python sandbox") 
+
+        self.window.protocol("WM_DELETE_WINDOW", self.destroy)
+        self.window.bind('<Key-Escape>', self.destroy )
+        
+        self.frame=Frame(self.window, width= 300, height= 200)
+        
+        self.pythonFrame=LabelFrame(self.frame,text="Python code")
+        self.textTask=Text(self.pythonFrame,width=60,height=30)
+        self.textTask.pack()
+        self.pythonFrame.grid(row=0,column=0)
+        
+        Button(self.frame,text="Execute",command=self.execute).grid(column=0,row=1)
+        self.evaluator=Evaluator()
+        self.evaluator.bindSymbol("chain",self.chain)
+        
+
+       
+        
+        self.frame.pack()
+        
+    def destroy(self):
+        self.parent.pythonWindow=None
+        self.window.destroy()
+        
+    
+    def execute(self):
+        toeval=self.textTask.get(1.0,END)
+        self.evaluator.perform(toeval)
+        
+        
+        
+
+
+
 
 class RosWindow(Thread):
 
@@ -176,6 +250,7 @@ class MainWindow:
 
         self.motorsWindow=None
         self.rosWindow=None
+        self.pythonWindow=None
         
         self.chain=None
 
@@ -276,10 +351,11 @@ class MainWindow:
         Button(frame,text="Deactivate",command=self.deactivate).grid(column=1,row=3)
 
         Button(frame,text="Show Motors",command=lambda: self.createMotorsWindow()).grid(column=1,row=4)
+        Button(frame,text="Show Python",command=lambda: self.createPythonWindow()).grid(column=1,row=5)
         
         if "--ros" in sys.argv:
-            Button(frame,text="Start ROS Raw",command=lambda: self.createRosWindowRaw()).grid(column=1,row=5)
-            Button(frame,text="Start ROS SI",command=lambda: self.createRosWindowSI()).grid(column=1,row=6)
+            Button(frame,text="Start ROS Raw",command=lambda: self.createRosWindowRaw()).grid(column=1,row=6)
+            Button(frame,text="Start ROS SI",command=lambda: self.createRosWindowSI()).grid(column=1,row=7)
 
         return frame
 
@@ -387,6 +463,13 @@ class MainWindow:
             return
         if self.motorsWindow==None:
             self.motorsWindow=MotorsWindow(self.master,self)
+
+    def createPythonWindow(self):
+        if not self.chain:
+            tkMessageBox.showerror("Chain Error","Please connect to a valid chain first")
+            return
+        if self.pythonWindow==None:
+            self.pythonWindow=PythonWindow(self.master,self)
         
     def createRosWindowRaw(self):
         if not self.chain:
