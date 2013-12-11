@@ -327,9 +327,9 @@ class DxlChain:
             logging.debug("get_motor_list delay: %f"%delay)
             return l
 
-    def get_configuration(self):
+    def get_configuration(self,broadcast=True):
         """Obtain the list of motors on a chain, read and return their full configuration"""
-        self.get_motor_list()
+        self.get_motor_list(broadcast=broadcast)
         start=time.time()
         d=OrderedDict()
         for (id,m) in self.motors.items():

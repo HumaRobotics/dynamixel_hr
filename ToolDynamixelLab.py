@@ -85,11 +85,12 @@ class MotorsWindow:
         self.row=0
         self.column=0
         self.update=False
+        self.localFrame=[]
         for id in self.chain.motors.keys():
             self.generate(id)            
         
         self.frame.pack()
-        self.master.after(1000,self.startUpdating)
+        self.master.after(1000,self.startUpdating) # To avoid spurious set coming from sliders
 
     def startUpdating(self):
         self.update=True
@@ -98,24 +99,28 @@ class MotorsWindow:
         model_name=self.chain.motors[id].model_name
         motor=self.chain.motors[id]
         if motor.is_motor():
-            
-            Label(self.frame,text="MOTOR %d %s"%(id,model_name)).grid(column=self.column,row=self.row,columnspan=2)
-            self.row+=1
+            localFrame=LabelFrame(self.frame,text="MOTOR %d %s"%(id,model_name) )
+            localFrame.grid(column=self.column,row=self.row)
+            self.localFrame.append(localFrame)
+            #~ Label(localFrame,text="MOTOR %d %s"%(id,model_name)).grid(column=self.column,row=self.row,columnspan=2)
+            #~ self.row+=1
             #~ Separator(self.frame,orient=HORIZONTAL,sticky='ew').grid(column=self.column,row=self.row,columnspan=2)
             #~ self.row+=1
             #~ for rname,reg in motor.registers.items():
                 #~ if 'w' in reg.mode and not reg.eeprom:
                     #~ self.addRegister(id,rname)
             
-            self.addRegister(id,"goal_pos")        
-            self.addRegister(id,"moving_speed")
+            row=0
+            row=self.addRegister(id,localFrame,"goal_pos",row)
+            row=self.addRegister(id,localFrame,"moving_speed",row)
             #~ self.addRegister(id,"p_gain")
-            if self.row>16:
+            self.row+=1
+            if self.row>7:
                 self.row=0
-                self.column+=2
+                self.column+=1
 
-    def addRegister(self,id,register):
-        Label(self.frame,text=register).grid(column=self.column,row=self.row)
+    def addRegister(self,id,localFrame,register,row):
+        Label(localFrame,text=register).grid(column=0,row=row)
         val=self.chain.get_reg(id,register)
         reg=self.chain.motors[id].registers[register]
         
@@ -126,11 +131,11 @@ class MotorsWindow:
         else:
             range=[0,65535]
         
-        scale=Scale(self.frame, from_=range[0], to=range[1], length=250,orient=HORIZONTAL)        
+        scale=Scale(localFrame, from_=range[0], to=range[1], length=250,orient=HORIZONTAL)        
         scale.set(val)
         scale.configure( command=lambda val,id=id,register=register: self.set(id,register,val) )
-        scale.grid(column=self.column+1,row=self.row)
-        self.row+=1
+        scale.grid(column=1,row=row)
+        return row+1
         
     def destroy(self):
         self.parent.motorsWindow=None
@@ -154,11 +159,36 @@ class MainWindow:
         self.width=800
         self.height=600
         self.frame = Frame(master, width= self.width, height= self.height)
+        self.buildMenu(master)
+        
         self.master.bind('<Key-Escape>', self.exit )
 
         #~ Label(self.frame, text="WARNING: use with 1 servo connected at a time !!").pack()
 
-        Label(self.frame,text="Port:").grid(column=0,row=0)
+        self.portFrame=self.buildSerialPortFrame()
+        self.portFrame.grid(column=0,row=0)
+
+        self.listFrame=self.buildListFrame()
+        self.listFrame.grid(column=0,row=1)
+
+        self.chainFrame=self.buildChainFrame()
+        self.chainFrame.grid(column=1,row=0,rowspan=2)
+
+
+
+   
+        
+        #~ Button(self.frame,text="SyncPos",command=lambda: self.test()).grid(column=11,row=12)
+        #~ Button(self.frame,text="SyncSpeed",command=lambda: self.test2()).grid(column=11,row=13)
+        
+        
+
+        self.frame.pack()
+
+
+    def buildSerialPortFrame(self):
+        frame=LabelFrame(self.frame,text="Serial Port")
+        Label(frame,text="Port:").grid(column=0,row=0)
         
         self.comPort= StringVar()
         if os.name=="nt":
@@ -166,66 +196,71 @@ class MainWindow:
         else:
             port="/dev/ttyUSB0"
         self.comPort.set(port)
-        entryComPort = Entry(self.frame, textvariable=self.comPort)
-        entryComPort.grid(column=1,row=0)
-        
-        Button(self.frame,text="Scan",command=self.scan).grid(column=2,row=0)
+        entryComPort = Entry(frame, textvariable=self.comPort)
+        entryComPort.grid(column=1,row=0)        
+        Button(frame,text="Scan",command=self.scan).grid(column=2,row=0)
 
-        Label(self.frame,text="Baudrate:").grid(column=3,row=0)
+        Label(frame,text="Baudrate:").grid(column=0,row=1)
         self.baudRate= IntVar()
         self.baudRate.set("1000000")
-        entryBaudRate= Entry(self.frame, textvariable=self.baudRate)
-        entryBaudRate.grid(column=4,row=0)
-        
-        Button(self.frame,text="Connect",command=self.connect).grid(column=5,row=0)
+        entryBaudRate= Entry(frame, textvariable=self.baudRate)
+        entryBaudRate.grid(column=1,row=1)        
+        Button(frame,text="Connect",command=self.connect).grid(column=2,row=1)
 
+        Label(frame,text="Timeout:").grid(column=0,row=2)
+        self.timeout= DoubleVar()
+        self.timeout.set("0.1")
+        entryTimeout= Entry(frame, textvariable=self.timeout)
+        entryTimeout.grid(column=1,row=2)        
 
-        self.listElements = Listbox(self.frame,width=50,height=20)
-        self.listElements.grid(row=1,column=0,rowspan=10)
-        #~ self.listStates.bind("<Double-Button-1>", self.setVar)
-        #~ self.listStates.bind("<Delete>", self.deleteVars)
+        return frame
 
+    def buildListFrame(self):
+        frame=LabelFrame(self.frame,text="Motor List")
+        self.listElements = Listbox(frame,width=50,height=20)
+        self.listElements.grid(row=0,column=0)
+        self.popup = Menu(self.master, tearoff=0)
+        self.popup.add_command(label="Change ID",command=self.changeMotorID)
+        self.popup.add_command(label="Change baudrate",command=self.changeMotorBaudrate)        
+        self.listElements.bind("<Button-3>", self.do_popup)        
+        return frame
+
+    def buildChainFrame(self):
+        frame=LabelFrame(self.frame,text="Motor Chain")
 
         # Text field for configuration with scrollbars
-        self.textConfig=Text(self.frame,width=50,height=30)
-        self.textConfig.grid(column=1,row=2,columnspan=10,rowspan=10)
+        configFrame=LabelFrame(frame,text="Chain configuration")
+        self.textConfig=Text(configFrame,width=50,height=30)
+        self.textConfig.grid(column=0,row=0)
         self.textConfig.insert(END,"{}")
         
-        scrly = Scrollbar(self.frame, command=self.textConfig.yview)
+        scrly = Scrollbar(configFrame, command=self.textConfig.yview)
         self.textConfig.config(yscrollcommand=scrly.set)
-        scrly.grid(column=10,row=2,rowspan=10,sticky="ns")
+        scrly.grid(column=1,row=0,sticky="ns")
         
-        scrlx = Scrollbar(self.frame, command=self.textConfig.xview,orient=HORIZONTAL)
+        scrlx = Scrollbar(configFrame, command=self.textConfig.xview,orient=HORIZONTAL)
         self.textConfig.config(xscrollcommand=scrlx.set)
-        scrlx.grid(column=0,row=12,columnspan=10,sticky="ew")
+        scrlx.grid(column=0,row=1,sticky="ew")
+        
+        configFrame.grid(column=0,row=0,rowspan=10)
         
 
 
-        Button(self.frame,text="Refresh",command=self.refresh).grid(column=11,row=5)
-        Button(self.frame,text="Set",command=self.set).grid(column=11,row=6)
-        Button(self.frame,text="Activate",command=self.activate).grid(column=11,row=7)
-        Button(self.frame,text="Deactivate",command=self.deactivate).grid(column=11,row=8)
+        Button(frame,text="Read",command=self.refresh).grid(column=1,row=0)
+        Button(frame,text="Write",command=self.set).grid(column=1,row=1)
+        Button(frame,text="Activate",command=self.activate).grid(column=1,row=2)
+        Button(frame,text="Deactivate",command=self.deactivate).grid(column=1,row=3)
 
-        Button(self.frame,text="Show Motors",command=lambda: self.createMotorsWindow()).grid(column=11,row=9)
+        Button(frame,text="Show Motors",command=lambda: self.createMotorsWindow()).grid(column=1,row=4)
         
         if "--ros" in sys.argv:
-            Button(self.frame,text="Start ROS Raw",command=lambda: self.createRosWindowRaw()).grid(column=11,row=10)
-            Button(self.frame,text="Start ROS SI",command=lambda: self.createRosWindowSI()).grid(column=11,row=11)
+            Button(frame,text="Start ROS Raw",command=lambda: self.createRosWindowRaw()).grid(column=1,row=5)
+            Button(frame,text="Start ROS SI",command=lambda: self.createRosWindowSI()).grid(column=1,row=6)
+
+        return frame
+
 
         
-        #~ Button(self.frame,text="SyncPos",command=lambda: self.test()).grid(column=11,row=12)
-        #~ Button(self.frame,text="SyncSpeed",command=lambda: self.test2()).grid(column=11,row=13)
-        
-        
-        self.popup = Menu(master, tearoff=0)
-        self.popup.add_command(label="Change ID",command=self.changeMotorID)
-        self.popup.add_command(label="Change baudrate",command=self.changeMotorBaudrate)
-        #~ self.popup.add_command(label="Previous")
-        #~ self.popup.add_command(label="Home")
-        
-        self.listElements.bind("<Button-3>", self.do_popup)        
-
-        self.frame.pack()
         
     def do_popup(self,event):
         oldid=self.getSelectedMotor()
@@ -238,7 +273,32 @@ class MainWindow:
         finally:
             # make sure to release the grab (Tk 8.0a1 only)
             self.popup.grab_release()
-            
+
+    def buildMenu(self, root):
+        menubar = Menu(root)
+        root.config(menu=menubar)
+
+        filemenu = Menu(menubar)
+        menubar.add_cascade(label='File', menu=filemenu)
+        #~ filemenu.add_command(label='Load configuration ...', command=self.saveState)
+        #~ filemenu.add_command(label='Save configuration ...', command=self.loadState)
+        filemenu.add_command(label='Quit', command=self.exit)
+
+
+
+        settingsmenu = Menu(menubar)
+        menubar.add_cascade(label='Settings', menu=settingsmenu)
+
+        self.doBroadcast=BooleanVar()
+        settingsmenu.add_checkbutton(label="Use Ping Broadcast", onvalue=True, offvalue=False, variable=self.doBroadcast)
+        self.doBroadcast.set(True)        
+
+        #~ self.doHideInternalStates= BooleanVar()    
+        #~ viewmenu.add_checkbutton(label="Hide Internal States", onvalue=True, offvalue=False, variable=self.doHideInternalStates)
+        #~ self.doHideInternalStates.set(True)
+
+
+
     def getSelectedMotor(self):
         items = map(int, self.listElements.curselection())    
         if len(items)==0:
@@ -279,11 +339,8 @@ class MainWindow:
             if rate==None:
                 return
             reg=self.chain.motors[id].registers["baud_rate"]
-            print "rate : %d"%rate
             dxlrate=reg.fromsi(rate)
-            print "dxlrate : %d"%dxlrate
             realrate=reg.tosi(dxlrate)
-            print "realrate : %d"%realrate
             
             answer=tkMessageBox.askyesno("Change Baudrate","Warning: motor ID %d will be set to baudrate %d, are you sure you want to proceed?"%(id,realrate))
             if answer:
@@ -319,7 +376,7 @@ class MainWindow:
     def open(self,rate):
         self.close()
         comPort=self.comPort.get()
-        self.chain=dxlchain.DxlChain(comPort,rate=rate)
+        self.chain=dxlchain.DxlChain(comPort,rate=rate,timeout=self.timeout.get())
         
 
     def test(self):
@@ -345,7 +402,7 @@ class MainWindow:
                 self.chain.close()
                 self.chain=None
             except:
-                print "WARNING: could not close chain"
+                loggin.warning("WARNING: could not close chain")
         
     def scan(self):
         selected_rate=None
@@ -358,13 +415,13 @@ class MainWindow:
                 return
                 
             try:
-                motors=self.chain.get_motor_list(instantiate=False)                
+                motors=self.chain.get_motor_list(instantiate=False,broadcast=self.doBroadcast.get())                
                 for id in motors:
                     model_number=self.chain.get_model_number(id)
                     model_name=get_model_name(model_number)
                     self.listElements.insert(END, "Rate %d ID %d (%s)\n"%(rate,id,model_name))
 
-                print "rate %d: %s"%(rate,str(motors))
+                logging.info("rate %d: %s"%(rate,str(motors)))
                 if len(motors)>0:
                     selected_rate=rate
                 #~ chain.dump()
@@ -403,7 +460,7 @@ class MainWindow:
 
     def refresh(self):
         if self.chain:
-            self.conf=self.chain.get_configuration()
+            self.conf=self.chain.get_configuration(broadcast=self.doBroadcast.get())
             self.showConfig(self.conf)
         else:
             tkMessageBox.showerror("Chain Error","Please connect to a valid chain first")
@@ -412,7 +469,7 @@ class MainWindow:
     def selectRate(self,rate,populateList=False):
         if populateList:
             self.listElements.delete(0,END)        
-        print "Selected rate %d"%rate
+        logging.info("Selected rate %d"%rate)
         self.baudRate.set(rate)
         try:
             self.open(rate)
@@ -420,7 +477,7 @@ class MainWindow:
             tkMessageBox.showerror("Serial Error","Could not open serial port: \n"+str(e))
             return
         try:            
-            self.conf=self.chain.get_configuration()            
+            self.conf=self.chain.get_configuration(broadcast=self.doBroadcast.get())            
         except dxlcore.DxlConfigurationException,e:            
             tkMessageBox.showerror("Configuration Error","Could not instantiate motor: \n"+str(e))
         
@@ -457,10 +514,11 @@ if "--ros" in sys.argv:
     rospy.init_node("dxl")
 
 
-appname="DynamixelLab"
-
 root = Tk()
+appname="DynamixelLab"
 root.title(appname)
+root.iconbitmap(default="humarobotics.ico")
+
 mainwindow = MainWindow(root)
 root.protocol("WM_DELETE_WINDOW", mainwindow.exit)
 root.mainloop()
