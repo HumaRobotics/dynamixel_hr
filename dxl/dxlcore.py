@@ -28,10 +28,10 @@ class Dxl:
 
 
 def get_model_name(model_number):
-    #~ try:
+    try:
         return DxlElement.DxlModels[model_number].model_name
-    #~ except:
-        #~ return "Unknown model %d"%model_number
+    except:
+        return "Unknown model %d"%model_number
 
 class ModelRegisteringMetaclass(type):
     def __new__(cls, name, bases, attrs):
@@ -85,4 +85,11 @@ class DxlElement(object):
     def sort(self):
         self.registers = OrderedDict( sorted(self.registers.iteritems(), key=lambda x: x[1].address) )
         
+    def baud_to_si(self,val):
+        return int(2000000/(val+1))
+
+    def si_to_baud(self,val):        
+        return int(2000000/(val)-1)
+
+
 

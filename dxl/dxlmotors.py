@@ -27,9 +27,9 @@ class DxlMotorAXMX(DxlMotor):
         self.registers["model_number"]=         DxlRegisterWord(0x00,'r',eeprom=True)
         self.registers["firmware"]=             DxlRegisterByte(0x02,'r',eeprom=True)
         self.registers["id"]=                   DxlRegisterByte(0x03,'rw',eeprom=True)
-        self.registers["baud_rate"]=            DxlRegisterByte(0x04,'rw',eeprom=True)
-        self.registers["return_delay"]=         DxlRegisterByte(0x05,'rw',eeprom=True)
-        self.registers["cw_angle_limit"]=       DxlRegisterWord(0x06,'rw',eeprom=True)
+        self.registers["baud_rate"]=            DxlRegisterByte(0x04,'rw',eeprom=True,tosi=self.baud_to_si,fromsi=self.si_to_baud)
+        self.registers["return_delay"]=         DxlRegisterByte(0x05,'rw',eeprom=True,tosi=self.pos_to_si,fromsi=self.si_to_pos)
+        self.registers["cw_angle_limit"]=       DxlRegisterWord(0x06,'rw',eeprom=True,tosi=self.pos_to_si,fromsi=self.si_to_pos)
         self.registers["ccw_angle_limit"]=      DxlRegisterWord(0x08,'rw',eeprom=True)
         self.registers["high_temp_limit"]=      DxlRegisterByte(0x0b,'rw',eeprom=True)
         self.registers["low_voltage_limit"]=    DxlRegisterByte(0x0c,'rw',eeprom=True)
@@ -65,7 +65,6 @@ class DxlMotorAXMX(DxlMotor):
 
     def si_to_pos(self,si):
         return int(float(si)/self.tick_to_rad)        
-
 
 
 class DxlMotorAX12(DxlMotorAXMX):

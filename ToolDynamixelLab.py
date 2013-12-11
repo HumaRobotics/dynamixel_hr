@@ -219,7 +219,7 @@ class MainWindow:
         
         self.popup = Menu(master, tearoff=0)
         self.popup.add_command(label="Change ID",command=self.changeMotorID)
-        self.popup.add_command(label="Change baudrate")
+        self.popup.add_command(label="Change baudrate",command=self.changeMotorBaudrate)
         #~ self.popup.add_command(label="Previous")
         #~ self.popup.add_command(label="Home")
         
@@ -228,6 +228,10 @@ class MainWindow:
         self.frame.pack()
         
     def do_popup(self,event):
+        oldid=self.getSelectedMotor()
+        if oldid<0:
+            return
+
         # display the popup menu
         try:
             self.popup.tk_popup(event.x_root, event.y_root, 0)
@@ -266,8 +270,25 @@ class MainWindow:
                     self.chain.set_reg(oldid,"id",newid)
                     self.connect()
                 
-                
-                
+    def changeMotorBaudrate(self):
+        id=self.getSelectedMotor()
+        if id<0:
+            tkMessageBox.showerror("Selection Error","Please select a motor first")
+        else:
+            rate=tkSimpleDialog.askinteger("Change Baudrate","Please provide the new baudrate for motor ID %d"%id)
+            if rate==None:
+                return
+            reg=self.chain.motors[id].registers["baud_rate"]
+            print "rate : %d"%rate
+            dxlrate=reg.fromsi(rate)
+            print "dxlrate : %d"%dxlrate
+            realrate=reg.tosi(dxlrate)
+            print "realrate : %d"%realrate
+            
+            answer=tkMessageBox.askyesno("Change Baudrate","Warning: motor ID %d will be set to baudrate %d, are you sure you want to proceed?"%(id,realrate))
+            if answer:
+                self.chain.set_reg(id,"baud_rate",dxlrate)                
+                self.connect()
         
         
     def createMotorsWindow(self):
