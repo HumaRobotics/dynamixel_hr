@@ -23,6 +23,8 @@ class DxlROS(Thread):
         self.rate=rate
         self.bindings=bindings
         self.raw=raw
+        self.publishers=[]
+        self.subscribers=[]
         
         self.do_stop=False
         
@@ -82,6 +84,7 @@ class DxlROS(Thread):
                     topic=basename+regname
                     print("Creating raw ROS Publisher: %s"%topic)
                     self.pub[topic]=rospy.Publisher(topic,Int32)
+                    self.publishers.append(topic)
         else:
             for id,motorname in self.bindings.items():
                 regs=self.chain.motors[id].registers
@@ -90,6 +93,7 @@ class DxlROS(Thread):
                     topic=basename+regname
                     print("Creating SI ROS Publisher: %s"%topic)
                     self.pub[topic]=rospy.Publisher(topic,Float64)                
+                    self.publishers.append(topic)
 
     def buildSubscribers(self):
         if self.raw:
@@ -101,6 +105,7 @@ class DxlROS(Thread):
                         topic=basename+regname+"/set"
                         print("Creating raw ROS Subscriber: %s"%topic)
                         rospy.Subscriber(topic,Int32,lambda msg,id=id,regname=regname: self.set_register(msg,id,regname) )
+                        self.subscribers.append(topic)
         else:
             for id,motorname in self.bindings.items():
                 regs=self.chain.motors[id].registers
@@ -109,6 +114,7 @@ class DxlROS(Thread):
                     topic=basename+regname+"/set"
                     print("Creating SI ROS Subscriber: %s"%topic)
                     rospy.Subscriber(topic,Float64,lambda msg,id=id,regname=regname: self.set_register_si(msg,id,regname) )
+                    self.subscribers.append(topic)
             
             
             

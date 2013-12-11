@@ -46,16 +46,39 @@ class RosWindow(Thread):
         self.window.bind('<Key-Escape>', self.destroy )
         
         self.frame=Frame(self.window)
-        Button(self.frame,text="Close",command=self.destroy).grid(column=0,row=0)
+
+        self.publishersFrame=self.buildPublishersFrame()
+        self.publishersFrame.grid(row=0,column=0)
+
+        self.subscribersFrame=self.buildSubscribersFrame()
+        self.subscribersFrame.grid(row=0,column=1)
+
+        Button(self.frame,text="Close",command=self.destroy).grid(column=0,row=1,columnspan=2)
                 
         self.frame.pack()
         self.start()
         
+    def buildPublishersFrame(self):
+        frame=LabelFrame(self.frame,text="Topics published")
+        self.listPublishers = Listbox(frame,width=50,height=20)
+        self.listPublishers.grid(row=0,column=0)
+        return frame
+
+    def buildSubscribersFrame(self):
+        frame=LabelFrame(self.frame,text="Topics subscribed")
+        self.listSubscribers= Listbox(frame,width=50,height=20)
+        self.listSubscribers.grid(row=0,column=0)
+        return frame
+    
     def run(self):
         import rospy
         from dxl import dxlros
         rospy.init_node("dxl")
         self.dxlros=dxlros.DxlROS(self.chain,rate=100,raw=self.raw)
+        for topic in self.dxlros.publishers:
+            self.listPublishers.insert(END,topic)
+        for topic in self.dxlros.subscribers:
+            self.listSubscribers.insert(END,topic)
         rospy.spin()        
         
     def destroy(self):
