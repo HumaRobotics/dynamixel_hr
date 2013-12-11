@@ -429,7 +429,7 @@ class MainWindow:
                 for id in motors:
                     model_number=self.chain.get_model_number(id)
                     model_name=get_model_name(model_number)
-                    self.listElements.insert(END, "Rate %d ID %d (%s)\n"%(rate,id,model_name))
+                    self.listElements.insert(END, "Rate %d ID %d (%s)"%(rate,id,model_name))
 
                 logging.info("rate %d: %s"%(rate,str(motors)))
                 if len(motors)>0:
@@ -494,7 +494,7 @@ class MainWindow:
         if populateList:
             for id in self.chain.motors.keys():
                 model_name=self.chain.motors[id].model_name
-                self.listElements.insert(END, "Rate %d ID %d (%s)\n"%(rate,id,model_name))
+                self.listElements.insert(END, "Rate %d ID %d (%s)"%(rate,id,model_name))
 
         self.showConfig(self.conf)
 
