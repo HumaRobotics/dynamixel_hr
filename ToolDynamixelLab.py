@@ -315,7 +315,7 @@ class MainWindow:
 
     def buildListFrame(self):
         frame=LabelFrame(self.frame,text="Motor List (use right button)")
-        self.listElements = Listbox(frame,width=50,height=20)
+        self.listElements = Listbox(frame,width=30,height=20)
         self.listElements.grid(row=0,column=0)
         self.popup = Menu(self.master, tearoff=0)
         self.popup.add_command(label="Change ID",command=self.changeMotorID)
@@ -513,6 +513,9 @@ class MainWindow:
         if self.rosWindow:
             self.rosWindow.destroy()
             self.rosWindow=None
+        if self.pythonWindow:
+            self.pythonWindow.destroy()
+            self.pythonWindow=None
         if self.chain:
             try:
                 self.chain.close()

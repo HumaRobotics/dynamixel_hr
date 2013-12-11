@@ -31,7 +31,7 @@ def get_model_name(model_number):
     try:
         return DxlElement.DxlModels[model_number].model_name
     except:
-        return "Unknown model %d"%model_number
+        return "??? %d"%model_number
 
 class ModelRegisteringMetaclass(type):
     def __new__(cls, name, bases, attrs):
