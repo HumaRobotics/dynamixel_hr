@@ -145,7 +145,17 @@ class DxlChain:
         """Sends a ping packet to a motor, raises an exception if no answer is received"""
         self._send(id,[Dxl.CMD_PING])
         self._recv()
-        
+
+    def factory_reset(self,id):
+        """Performs a factory reset on a motor"""
+        with self.lock:
+            self._factory_reset(id)
+            
+    def _factory_reset(self,id):
+        """Performs a factory reset on a motor"""
+        self._send(id,[Dxl.CMD_RESET])
+        self._recv()
+
     def _ping_broadcast(self):
         """ Perform a ping on all servos. Returns list of responding IDs """
         self._send(Dxl.BROADCAST,[Dxl.CMD_PING])
@@ -414,24 +424,33 @@ class DxlChain:
         conf=self.get_configuration()
         print json.dumps(conf,indent=4,sort_keys=False)
 
-    def enable(self,state=True):
-        """Enable or disable all the motors on the chain"""
-        v=0
-        if state:
-            v=1
-        for id in self.motors.keys():
-            self.set_reg(id,"torque_enable",v)
-    
-    def disable(self):
-        """Disable all the motors on the chain"""
-        self.enable(False)
-        
-    def wait_stopped(self,id=None):
-        """ Wait for a specific motor or all motors on the chain to have stopped moving"""
-        if id==None:
+    def get_motors(self,ids=None):
+        """Return the list of all motors ids, or a specific set, or a single id"""        
+        if ids==None:
             ids=self.motors.keys()
-        else:
-            ids=[id]
+        elif type(ids)==type(list()):
+            return list
+        elif type(ids)==type(int()):
+            return [ids]
+        raise Exception,"Invalid type for motor id"
+        
+            
+            
+    def enable(self,ids=None):
+        """Enable or disable all the motors on the chain"""
+        ids=self.get_motors(ids)
+        for id in ids:
+            self.set_reg(id,"torque_enable",1)
+    
+    def disable(self,ids=None):
+        """Disable all the motors on the chain"""
+        ids=self.get_motors(ids)
+        for id in ids:
+            self.set_reg(id,"torque_enable",0)
+        
+    def wait_stopped(self,ids=None):
+        """ Wait for a specific motor or all motors on the chain to have stopped moving"""
+        ids=self.get_motors(ids)
         while True:
             moving=False
             for id in ids:
@@ -442,12 +461,9 @@ class DxlChain:
                 break
             time.sleep(0.1)
 
-    def is_moving(self,id=None):
+    def is_moving(self,ids=None):
         """Returns True is a specific motor (or any motor on the chain) is still moving"""
-        if id==None:
-            ids=self.motors.keys()
-        else:
-            ids=[id]
+        ids=self.get_motors(ids)
         
         for id in ids:
             if self.get_reg(id,"moving")!=0:
