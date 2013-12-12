@@ -79,11 +79,13 @@ def testAX12(chain):
     chain.set_reg(1,"torque_enable",0)
 
 if __name__ == "__main__":    
-    chain=dxlchain.DxlChain("/dev/ttyUSB0", rate=1000000,timeout=1)
-    print chain.get_motor_list(instantiate=False)
-    chain.send(200,[Dxl.CMD_WRITE_DATA,24,1])
+    chain=dxlchain.DxlChain("COM21", rate=1000000,timeout=1)
+    #~ print chain.get_motor_list(instantiate=False)
+    #~ chain.send(9,[Dxl.CMD_RESET])
+    #~ res=chain.comm(9,[Dxl.CMD_READ_DATA,0,2])
+    #~ print res
     #~ chain.dump()
-    chain._ping(200)
+    #~ chain._ping(200)
     #~ testAX12(chain)
     #~ testArm(chain)
     chain.close()

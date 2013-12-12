@@ -11,6 +11,9 @@ from threading import Thread
 from Tkinter import *
 import tkMessageBox
 import tkSimpleDialog
+import tkFileDialog
+
+
 from serial import SerialException
 
 
@@ -362,15 +365,18 @@ class MainWindow:
 
         Button(frame,text="Read",command=self.refresh).grid(column=1,row=0)
         Button(frame,text="Write",command=self.set).grid(column=1,row=1)
-        Button(frame,text="Activate",command=self.activate).grid(column=1,row=2)
-        Button(frame,text="Deactivate",command=self.deactivate).grid(column=1,row=3)
+        Button(frame,text="Enable",command=self.activate).grid(column=1,row=2)
+        Button(frame,text="Disable",command=self.deactivate).grid(column=1,row=3)
 
         Button(frame,text="Show Motors",command=lambda: self.createMotorsWindow()).grid(column=1,row=4)
         Button(frame,text="Show Python",command=lambda: self.createPythonWindow()).grid(column=1,row=5)
+
+        Button(frame,text="Save Pose",command=self.savePose).grid(column=1,row=6)
+        Button(frame,text="Load Pose",command=self.loadPose).grid(column=1,row=7)
         
         if "--ros" in sys.argv:
-            Button(frame,text="Start ROS Raw",command=lambda: self.createRosWindowRaw()).grid(column=1,row=6)
-            Button(frame,text="Start ROS SI",command=lambda: self.createRosWindowSI()).grid(column=1,row=7)
+            Button(frame,text="Start ROS Raw",command=lambda: self.createRosWindowRaw()).grid(column=1,row=8)
+            Button(frame,text="Start ROS SI",command=lambda: self.createRosWindowSI()).grid(column=1,row=9)
 
         return frame
 
@@ -671,6 +677,32 @@ class MainWindow:
 
     def deactivate(self):
         self.set_chain_reg("torque_enable",0)
+    
+    def savePose(self):
+        if not self.chain:
+            tkMessageBox.showerror("Chain Error","Please connect to a valid chain first")
+            return
+        pose=self.chain.get_pose()
+        txt=json.dumps(pose,indent=4,sort_keys=False)
+        f=open('tmp.position','w')
+        f.write(txt)
+        f.close()
+
+    def loadPose(self):
+        if not self.chain:
+            tkMessageBox.showerror("Chain Error","Please connect to a valid chain first")
+            return
+        f=open('tmp.position','r')
+        txt=f.read()
+        f.close()
+        d=json.loads(txt)
+        pose=dict()
+        for k,v in d.items():
+            pose[int(k)]=v
+            
+        self.chain.set_pose(pose)
+
+        
 
 if "--ros" in sys.argv:
     import rospy

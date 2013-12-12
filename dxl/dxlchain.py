@@ -477,6 +477,15 @@ class DxlChain:
             self.set_reg(id,"moving_speed",speed)
         self.set_reg(id,"goal_pos",pos)
         if blocking:
-            self.wait_stopped(ids=id)
+            self.wait_stopped(ids=id)        
             
-            
+    def get_pose(self,ids=None):
+        ids=self.get_motors(ids)
+        pos=dict()
+        for id in ids:
+            pos[id]=self.get_reg(id,"present_position")
+        return pos
+    
+    def set_pose(self,pos):
+        self.sync_write_pos(pos.keys(),pos.values())
+        
