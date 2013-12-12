@@ -9,27 +9,38 @@ class PythonText(Text):
         self.patterns={}
         self.bind("<KeyRelease>",self.colorize)
 
+        self.createTags()
+
+        self.addPattern("#.*","comment")
+        self.addPattern("'[^']*'","string")
+        self.addPattern('"[^"]*"',"string")
+        keywords=["if","else","elif","for","while","def","class","pass","import","break","continue"]
+        for k in keywords:
+            self.addPattern("%s(?!\\w)"%k,"keyword")
+        
+        
+    def createTags(self):
         self.tag_configure("comment",foreground="#007f00")
         self.tag_configure("keyword",foreground="#0000Af")
         self.tag_configure("string",foreground="#7f007f")
 
-        self.addPattern("#.*","comment")
-        self.addPattern("'.*'","string")
-        self.addPattern('".*"',"string")
-        keywords=["if","else","elif","for","while","def","class","pass"]
-        for k in keywords:
-            self.addPattern(k,"keyword")
-        
-        
+    def deleteTags(self):
+        self.tag_delete("comment")
+        self.tag_delete("keyword")
+        self.tag_delete("string")
 
+    
     def addPattern(self,regexp,tag):
         self.patterns[regexp]=tag
     
     def colorize(self,*args,**kwargs):        
+        self.deleteTags()
+        self.createTags()
         for regexp in self.patterns.keys():
             self.highlight_pattern(regexp,self.patterns[regexp],regexp=True)
         
     def highlight_pattern(self, pattern, tag, start="1.0", end="end", regexp=False):
+        
         '''Apply the given tag to all text that matches the given pattern
 
         If 'regexp' is set to True, pattern will be treated as a regular expression

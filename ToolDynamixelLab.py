@@ -94,9 +94,6 @@ chain.goto(id,100,speed=0) # Full speed back to pos 100
         self.evaluator.bindSymbol("chain",self.chain)
         self.textTask.colorize()
         
-
-       
-        
         self.frame.pack()
         
     def destroy(self):
