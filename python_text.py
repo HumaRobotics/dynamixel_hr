@@ -1,5 +1,6 @@
 from Tkinter import *
 
+import keyword
 
 class PythonText(Text):
     """ Tk Text Widget that supports some Python syntax coloring"""
@@ -14,7 +15,7 @@ class PythonText(Text):
         self.addPattern("#.*","comment")
         self.addPattern("'[^']*'","string")
         self.addPattern('"[^"]*"',"string")
-        keywords=["if","else","elif","for","while","def","class","pass","import","break","continue"]
+        keywords=keyword.kwlist
         for k in keywords:
             self.addPattern("%s(?!\\w)"%k,"keyword")
         
