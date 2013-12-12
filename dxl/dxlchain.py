@@ -450,7 +450,10 @@ class DxlChain:
             self.set_reg(id,"torque_enable",0)
         
     def wait_stopped(self,ids=None):
-        """ Wait for a specific motor or all motors on the chain to have stopped moving"""
+        """
+        Wait for a specific motor or all motors on the chain to have stopped moving.
+        This is a blocking function.
+        """
         ids=self.get_motors(ids)
         while True:
             moving=False
@@ -463,7 +466,7 @@ class DxlChain:
             time.sleep(0.1)
 
     def is_moving(self,ids=None):
-        """Returns True is a specific motor (or any motor on the chain) is still moving"""
+        """Returns True is a specific motor (or any motor on the chain) is still moving."""
         ids=self.get_motors(ids)
         
         for id in ids:
@@ -472,7 +475,10 @@ class DxlChain:
         return False
                 
     def goto(self,id,pos,speed=None,blocking=True):
-        """Moves a motor to a position at a specified speed (or current speed if none provided) and waits for motion to be completed (unless blocking=False is passed)"""
+        """
+        Moves a motor to a position at a specified speed (or current speed if none provided) and waits for motion to be completed (unless blocking=False is passed).
+        This is a blocking function by default.
+        """
         if speed!=None:
             self.set_reg(id,"moving_speed",speed)
         self.set_reg(id,"goal_pos",pos)
@@ -487,9 +493,14 @@ class DxlChain:
             pos[id]=self.get_reg(id,"present_position")
         return pos
     
-    def set_pose(self,pos):
-        """Set the position of a set of motors by providing an ID indexed dictionary"""
+    def set_pose(self,pos,blocking=True):
+        """
+        Set the position of a set of motors by providing an ID indexed dictionary
+        This is a blocking function by default
+        """
         self.sync_write_pos(pos.keys(),pos.values())
+        if blocking:
+            self.wait_stopped()
         
 
     def save_pose(self,filename,ids=None):
@@ -501,8 +512,11 @@ class DxlChain:
         f.write(txt)
         f.close()
 
-    def load_pose(self,filename):
-        """Set the position of a set of motors by providing a JSON formatted file"""
+    def load_pose(self,filename,blocking=True):
+        """
+        Set the position of a set of motors by providing a JSON formatted file.
+        This is a blocking function by default.
+        """
         f=open(filename,'r')
         txt=f.read()
         f.close()
@@ -510,5 +524,5 @@ class DxlChain:
         pose=dict()
         for k,v in d.items():
             pose[int(k)]=v            
-        self.set_pose(pose)        
+        self.set_pose(pose,blocking)
         
