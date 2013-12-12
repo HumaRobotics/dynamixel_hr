@@ -16,6 +16,7 @@ from serial import SerialException
 
 from dxl import *
 from dxl.dxlcore import *
+from python_text import *
 
 searchRates=[57142,3000000,1000000,9600]
 
@@ -84,13 +85,14 @@ chain.goto(id,100,speed=0) # Full speed back to pos 100
         self.frame=Frame(self.window, width= 300, height= 200)
         
         self.pythonFrame=LabelFrame(self.frame,text="Python code")
-        self.textTask=Text(self.pythonFrame,width=60,height=30)
+        self.textTask=PythonText(self.pythonFrame,width=60,height=30)
         self.textTask.pack()
         self.pythonFrame.grid(row=0,column=0)
         self.textTask.insert(END,self.defaultCode)
         Button(self.frame,text="Execute",command=self.execute).grid(column=0,row=1)
         self.evaluator=Evaluator()
         self.evaluator.bindSymbol("chain",self.chain)
+        self.textTask.colorize()
         
 
        
