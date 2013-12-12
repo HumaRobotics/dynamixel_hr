@@ -682,13 +682,23 @@ class MainWindow:
         if not self.chain:
             tkMessageBox.showerror("Chain Error","Please connect to a valid chain first")
             return
-        self.chain.save_pose("tmp.position")
+        options={}
+        options['defaultextension'] = '.position'
+        options['filetypes'] = [('pose files', '.position'),('all files', '.*')]
+        file=tkFileDialog.asksaveasfilename(**options)
+        if file:                        
+            self.chain.save_pose(file)
 
     def loadPose(self):
         if not self.chain:
             tkMessageBox.showerror("Chain Error","Please connect to a valid chain first")
             return
-        self.chain.load_pose('tmp.position')
+        options={}
+        options['defaultextension'] = '.position'
+        options['filetypes'] = [('pose files', '.position'),('all files', '.*')]
+        file=tkFileDialog.askopenfilename(**options)
+        if file:
+            self.chain.load_pose(file)
 
         
 
