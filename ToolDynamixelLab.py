@@ -61,6 +61,18 @@ class PythonWindow:
         self.parent=parent
         self.chain=parent.chain
         
+        self.defaultCode="""
+# Use the 'chain' object to access motors
+# Here is an example that assumes a motor on ID 1
+
+id=1
+
+chain.goto(id,0,speed=0) # Full speed to pos 0
+chain.goto(id,1000,speed=100) # Low speed to pos 1000
+chain.goto(id,500) # Current speed to pos 500
+chain.goto(id,100,speed=0) # Full speed back to pos 100        
+        """
+        
         self.window=Toplevel(self.master)
         self.window.title("Python sandbox") 
 
@@ -73,7 +85,7 @@ class PythonWindow:
         self.textTask=Text(self.pythonFrame,width=60,height=30)
         self.textTask.pack()
         self.pythonFrame.grid(row=0,column=0)
-        
+        self.textTask.insert(END,self.defaultCode)
         Button(self.frame,text="Execute",command=self.execute).grid(column=0,row=1)
         self.evaluator=Evaluator()
         self.evaluator.bindSymbol("chain",self.chain)
@@ -89,8 +101,12 @@ class PythonWindow:
         
     
     def execute(self):
-        toeval=self.textTask.get(1.0,END)
-        self.evaluator.perform(toeval)
+        try:
+            toeval=self.textTask.get(1.0,END)
+            self.evaluator.perform(toeval)
+        except Exception,e:
+            tkMessageBox.showerror("Python Error",str(e))
+            
         
         
         
@@ -626,7 +642,6 @@ class MainWindow:
 
     def deactivate(self):
         self.set_chain_reg("torque_enable",0)
-
 
 if "--ros" in sys.argv:
     import rospy

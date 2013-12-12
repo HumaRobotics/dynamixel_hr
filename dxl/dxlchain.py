@@ -184,6 +184,8 @@ class DxlChain:
 
     def get_reg(self,id,name):
         """Read a named register from a motor"""
+        if id not in self.motors.keys():
+            raise DxlConfigurationException,'Motor ID %d does not exist on the chain'%(id) 
         m=self.motors[id]
         reg=m.registers[name]
         (esize,cmd)=m.getRegisterCmd(name)
@@ -196,6 +198,8 @@ class DxlChain:
 
     def set_reg(self,id,name,v):
         """Sets a named register on a motor"""
+        if id not in self.motors.keys():
+            raise DxlConfigurationException,'Motor ID %d does not exist on the chain'%(id) 
         m=self.motors[id]
         reg=m.registers[name]
         (esize,cmd)=m.setRegisterCmd(name,reg.todxl(v))
@@ -394,3 +398,28 @@ class DxlChain:
         """Disable all the motors on the chain"""
         self.enable(False)
         
+    def wait_stopped(self,id=None):
+        """ Wait for a specific motor or all motors on the chain to have stopped moving"""
+        if id==None:
+            ids=self.motors.keys()
+        else:
+            ids=[id]
+        while True:
+            moving=False
+            for id in ids:
+                if self.get_reg(id,"moving")!=0:
+                    moving=True
+                    break
+            if not moving:
+                break
+            time.sleep(0.1)
+                
+    def goto(self,id,pos,speed=None,blocking=True):
+        """Moves a motor to a position at a specified speed (or current speed if none provided) and waits for motion to be completed (unless blocking=False is passed)"""
+        if speed!=None:
+            self.set_reg(id,"moving_speed",speed)
+        self.set_reg(id,"goal_pos",pos)
+        if blocking:
+            self.wait_stopped(id=id)
+            
+            
