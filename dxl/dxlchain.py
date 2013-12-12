@@ -427,12 +427,13 @@ class DxlChain:
     def get_motors(self,ids=None):
         """Return the list of all motors ids, or a specific set, or a single id"""        
         if ids==None:
-            ids=self.motors.keys()
+            return self.motors.keys()
+            
         elif type(ids)==type(list()):
-            return list
+            return ids
         elif type(ids)==type(int()):
             return [ids]
-        raise Exception,"Invalid type for motor id"
+        raise Exception,"Invalid type for motor id: %s"%str(ids)
         
             
             
@@ -476,6 +477,6 @@ class DxlChain:
             self.set_reg(id,"moving_speed",speed)
         self.set_reg(id,"goal_pos",pos)
         if blocking:
-            self.wait_stopped(id=id)
+            self.wait_stopped(ids=id)
             
             

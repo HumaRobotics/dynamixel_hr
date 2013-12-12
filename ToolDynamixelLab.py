@@ -333,7 +333,6 @@ class MainWindow:
         self.popup.add_command(label="Enable",command=self.enableMotor)
         self.popup.add_command(label="Disable",command=self.disableMotor)
         self.popup.add_command(label="Change ID",command=self.changeMotorID)
-        self.popup.add_command(label="Change ID",command=self.changeMotorID)
         self.popup.add_command(label="Change baudrate",command=self.changeMotorBaudrate)
         self.popup.add_command(label="Factory reset",command=self.factoryReset)
         self.popup.add_command(label="Open documentation",command=self.openDocumentation)
