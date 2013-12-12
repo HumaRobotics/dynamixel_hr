@@ -69,8 +69,10 @@ id=1
 
 chain.goto(id,0,speed=0) # Full speed to pos 0
 chain.goto(id,1000,speed=100) # Low speed to pos 1000
-chain.goto(id,500) # Current speed to pos 500
-chain.goto(id,100,speed=0) # Full speed back to pos 100        
+chain.goto(id,500,blocking=False) # Current speed to pos 500
+while chain.is_moving():
+	print chain.get_reg_si(id,"present_position")
+chain.goto(id,100,speed=0) # Full speed back to pos 100   
         """
         
         self.window=Toplevel(self.master)

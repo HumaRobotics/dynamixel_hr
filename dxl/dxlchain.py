@@ -16,6 +16,8 @@ from threading import Lock
 import json
 import array
 from collections import OrderedDict
+from post_threading import Post
+
 
     
         
@@ -40,7 +42,7 @@ class DxlChain:
         self.open()
         self.configuration=None
         self.motors={}
-    
+        self.post=Post(self)
 
 
     # Low-level communication (Thread unsafe functions with _)
@@ -196,6 +198,20 @@ class DxlChain:
         logging.info('Motor ID %d get register %s: %d'%(id,name,v) )
         return v
 
+    def get_reg_si(self,id,name):
+        """Read a named register from a motor and returns value converted to SI units"""
+        if id not in self.motors.keys():
+            raise DxlConfigurationException,'Motor ID %d does not exist on the chain'%(id) 
+        m=self.motors[id]
+        reg=m.registers[name]
+        (esize,cmd)=m.getRegisterCmd(name)
+        (nid,data)=self.comm(id,cmd)
+        if len(data)!=esize:
+            raise DxlCommunicationException,'Motor ID %d did not retrieve expected register %s size %d: got %d bytes'%(id,name,esize,len(data)) 
+        v=reg.fromdxl(data)
+        logging.info('Motor ID %d get register %s: %d'%(id,name,v) )
+        return reg.tosi(v)
+
     def set_reg(self,id,name,v):
         """Sets a named register on a motor"""
         if id not in self.motors.keys():
@@ -203,6 +219,18 @@ class DxlChain:
         m=self.motors[id]
         reg=m.registers[name]
         (esize,cmd)=m.setRegisterCmd(name,reg.todxl(v))
+        (nid,data)=self.comm(id,cmd)
+        logging.info('Motor ID %d set register %s to %d'%(id,name,v) )
+        if len(data)!=esize:        
+            raise DxlCommunicationException,'Motor ID %d did not retrieve expected register %s size %d: got %d bytes'%(id,name,esize,len(data)) 
+
+    def set_reg_si(self,id,name,v):
+        """Sets a named register on a motor using SI units"""
+        if id not in self.motors.keys():
+            raise DxlConfigurationException,'Motor ID %d does not exist on the chain'%(id) 
+        m=self.motors[id]
+        reg=m.registers[name]
+        (esize,cmd)=m.setRegisterCmd(name,reg.todxl(reg.fromsi(v)))
         (nid,data)=self.comm(id,cmd)
         logging.info('Motor ID %d set register %s to %d'%(id,name,v) )
         if len(data)!=esize:        
@@ -413,6 +441,18 @@ class DxlChain:
             if not moving:
                 break
             time.sleep(0.1)
+
+    def is_moving(self,id=None):
+        """Returns True is a specific motor (or any motor on the chain) is still moving"""
+        if id==None:
+            ids=self.motors.keys()
+        else:
+            ids=[id]
+        
+        for id in ids:
+            if self.get_reg(id,"moving")!=0:
+                return True
+        return False
                 
     def goto(self,id,pos,speed=None,blocking=True):
         """Moves a motor to a position at a specified speed (or current speed if none provided) and waits for motion to be completed (unless blocking=False is passed)"""
