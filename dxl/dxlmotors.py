@@ -126,7 +126,7 @@ class DxlMotorMX28(DxlMotorAXMX):
         self.registers["i_gain"]=               DxlRegisterByte(0x1B,'rw')
         self.registers["d_gain"]=               DxlRegisterByte(0x1C,'rw')
         
-        self.registers["goal_pos"]=             DxlRegisterWord(0x1E,'rw',range=[0,4096],tosi=self.pos_to_si,fromsi=self.si_to_pos)
+        self.registers["goal_pos"]=             DxlRegisterWord(0x1E,'rw',range=[0,4095],tosi=self.pos_to_si,fromsi=self.si_to_pos)
         self.registers["moving_speed"]=         DxlRegisterWord(0x20,'rw',range=[0,1023])
 
         self.sort()
@@ -145,7 +145,7 @@ class DxlMotorMX64(DxlMotorAXMX):
         self.registers["i_gain"]=               DxlRegisterByte(0x1B,'rw')
         self.registers["p_gain"]=               DxlRegisterByte(0x1C,'rw')
 
-        self.registers["goal_pos"]=             DxlRegisterWord(0x1E,'rw',range=[0,4096],tosi=self.pos_to_si,fromsi=self.si_to_pos)
+        self.registers["goal_pos"]=             DxlRegisterWord(0x1E,'rw',range=[0,4095],tosi=self.pos_to_si,fromsi=self.si_to_pos)
         self.registers["moving_speed"]=         DxlRegisterWord(0x20,'rw',range=[0,1023])
         
         self.sort()
