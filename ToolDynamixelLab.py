@@ -682,25 +682,13 @@ class MainWindow:
         if not self.chain:
             tkMessageBox.showerror("Chain Error","Please connect to a valid chain first")
             return
-        pose=self.chain.get_pose()
-        txt=json.dumps(pose,indent=4,sort_keys=False)
-        f=open('tmp.position','w')
-        f.write(txt)
-        f.close()
+        self.chain.save_pose("tmp.position")
 
     def loadPose(self):
         if not self.chain:
             tkMessageBox.showerror("Chain Error","Please connect to a valid chain first")
             return
-        f=open('tmp.position','r')
-        txt=f.read()
-        f.close()
-        d=json.loads(txt)
-        pose=dict()
-        for k,v in d.items():
-            pose[int(k)]=v
-            
-        self.chain.set_pose(pose)
+        self.chain.load_pose('tmp.position')
 
         
 

@@ -480,6 +480,7 @@ class DxlChain:
             self.wait_stopped(ids=id)        
             
     def get_pose(self,ids=None):
+        """Obtain the current pose from the chain or a set of motors"""
         ids=self.get_motors(ids)
         pos=dict()
         for id in ids:
@@ -487,5 +488,27 @@ class DxlChain:
         return pos
     
     def set_pose(self,pos):
+        """Set the position of a set of motors by providing an ID indexed dictionary"""
         self.sync_write_pos(pos.keys(),pos.values())
+        
+
+    def save_pose(self,filename,ids=None):
+        """Obtain the current pose from the chain or a set of motors and saves it in a JSON formatted file"""
+        ids=self.get_motors(ids)
+        pose=self.get_pose(ids)
+        txt=json.dumps(pose,indent=4,sort_keys=False)
+        f=open(filename,'w')
+        f.write(txt)
+        f.close()
+
+    def load_pose(self,filename):
+        """Set the position of a set of motors by providing a JSON formatted file"""
+        f=open(filename,'r')
+        txt=f.read()
+        f.close()
+        d=json.loads(txt)
+        pose=dict()
+        for k,v in d.items():
+            pose[int(k)]=v            
+        self.set_pose(pose)        
         
