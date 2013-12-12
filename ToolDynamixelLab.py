@@ -290,13 +290,8 @@ class MainWindow:
         self.chainFrame.grid(column=1,row=0,rowspan=2)
 
 
-
-   
-        
         #~ Button(self.frame,text="SyncPos",command=lambda: self.test()).grid(column=11,row=12)
         #~ Button(self.frame,text="SyncSpeed",command=lambda: self.test2()).grid(column=11,row=13)
-        
-        
 
         self.frame.pack()
 
@@ -335,8 +330,12 @@ class MainWindow:
         self.listElements = Listbox(frame,width=30,height=20)
         self.listElements.grid(row=0,column=0)
         self.popup = Menu(self.master, tearoff=0)
+        self.popup.add_command(label="Enable",command=self.enableMotor)
+        self.popup.add_command(label="Disable",command=self.disableMotor)
+        self.popup.add_command(label="Change ID",command=self.changeMotorID)
         self.popup.add_command(label="Change ID",command=self.changeMotorID)
         self.popup.add_command(label="Change baudrate",command=self.changeMotorBaudrate)
+        self.popup.add_command(label="Factory reset",command=self.factoryReset)
         self.popup.add_command(label="Open documentation",command=self.openDocumentation)
         self.listElements.bind("<Button-3>", self.do_popup)        
         return frame
@@ -446,6 +445,36 @@ class MainWindow:
                 if do:
                     self.chain.set_reg(oldid,"id",newid)
                     self.connect()
+
+    def disableMotor(self):
+        id=self.getSelectedMotor()
+        if id<0:
+            tkMessageBox.showerror("Selection Error","Please select a motor first")
+        else:
+            self.chain.disable(id)
+
+    def enableMotor(self):
+        id=self.getSelectedMotor()
+        if id<0:
+            tkMessageBox.showerror("Selection Error","Please select a motor first")
+        else:
+            self.chain.enable(id)
+
+    def factoryReset(self):
+        id=self.getSelectedMotor()
+        if id<0:
+            tkMessageBox.showerror("Selection Error","Please select a motor first")
+        else:
+            answer=tkMessageBox.askyesno("Factory Reset","Warning: you are about to completely reset motor ID %d, its ID and baudrate will be changed, are you sure you want to proceed?"%(id))
+            if not answer: return
+            do=True
+            if 1 in self.chain.motors.keys():
+                answer=tkMessageBox.askyesno("ID Conflict","Warning: the motor ID 1 obtained after factory reset is already attributed on your chain, are you sure you want to proceed?")
+                if not answer:
+                    do=False
+            if do:
+                self.chain.factory_reset(id)
+                self.connect()
                 
     def changeMotorBaudrate(self):
         id=self.getSelectedMotor()
