@@ -89,7 +89,7 @@ chain.goto(id,100,speed=0) # Full speed back to pos 100
         self.buildMenu(self.window)
 
         self.pythonFrame=LabelFrame(self.frame,text="Python code")
-        self.textTask=PythonText(self.pythonFrame,width=60,height=30)
+        self.textTask=PythonText(self.pythonFrame,width=60,height=30,maxundo=1000,undo=1)
         self.textTask.pack()
         self.pythonFrame.grid(row=0,column=0)
         self.textTask.insert(END,self.defaultCode)
@@ -107,6 +107,7 @@ chain.goto(id,100,speed=0) # Full speed back to pos 100
         #~ scrlx.grid(column=0,row=1,sticky="ew")
 
         Button(self.frame,text="Execute",command=self.execute).grid(column=0,row=1)
+        self.textTask.bind("<F5>",self.execute)
 
 
         self.frame.pack()
@@ -119,18 +120,16 @@ chain.goto(id,100,speed=0) # Full speed back to pos 100
         filemenu = Menu(menubar)
         menubar.add_cascade(label='File', menu=filemenu)
 
-        #~ filemenu.add_command(label='Open', command=sys.exit)
-        #~ filemenu.add_separator(  )
         filemenu.add_command(label='Save...', command=self.save)
         filemenu.add_command(label='Load...', command=self.load)
 
 
-    def destroy(self):
+    def destroy(self,event=None):
         self.parent.pythonWindow=None
         self.window.destroy()
         
     
-    def execute(self):
+    def execute(self,event=None):
         try:
             toeval=self.textTask.get(1.0,END)
             self.evaluator.perform(toeval)
