@@ -68,13 +68,9 @@ class DxlMotorAXMX(DxlMotor):
 
 
 class DxlMotorAX12(DxlMotorAXMX):
-    __metaclass__=ModelRegisteringMetaclass
-    model_name="AX12"
-    model_number=12
-    documentation_url="http://support.robotis.com/en/product/dynamixel/ax_series/dxl_ax_actuator.htm"
-    
+
     tick_to_rad=0.00506145483078355577307870322862
-    
+
     def __init__(self):
         DxlMotorAXMX.__init__(self)
 
@@ -87,8 +83,27 @@ class DxlMotorAX12(DxlMotorAXMX):
         self.registers["moving_speed"]=         DxlRegisterWord(0x20,'rw',range=[0,1023])
 
         self.sort()
-                
-        
+
+
+class DxlMotorAX12A(DxlMotorAX12):
+    __metaclass__=ModelRegisteringMetaclass
+    model_name="AX12A"
+    model_number=12
+    documentation_url="http://support.robotis.com/en/product/dynamixel/ax_series/dxl_ax_actuator.htm"
+    
+    
+    def __init__(self):
+        DxlMotorAX12.__init__(self)
+
+class DxlMotorAX12W(DxlMotorAX12):
+    __metaclass__=ModelRegisteringMetaclass
+    model_name="AX12W"
+    model_number=300
+    documentation_url="http://support.robotis.com/en/product/dynamixel/ax_series/ax-12w.htm"
+    
+    
+    def __init__(self):
+        DxlMotorAX12.__init__(self)
 
 class DxlMotorAX18(DxlMotorAXMX):
     __metaclass__=ModelRegisteringMetaclass
