@@ -566,6 +566,8 @@ class MainWindow:
             return
         if self.pythonWindow==None:
             self.pythonWindow=PythonWindow(self.master,self)
+        #~ from idlelib.PyShell import EditorWindow
+        #~ self.pythonWindow=EditorWindow(root=self.master)
         
     def createRosWindowRaw(self):
         if not self.chain:
