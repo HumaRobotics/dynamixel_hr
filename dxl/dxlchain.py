@@ -26,12 +26,12 @@ class DxlChain:
     """
     Manages a list of Dynamixel motors on the same serial link.
     Provides thread-safe access to the chain.
-    
+
     Instantiate by passing the serial device (COMXX or /dev/ttyUSBX) and the baudrate to use.
     If the chain is unknown you can directly call get_motor_list to obtain the list of available motors.
     """
 
-    def __init__(self, portname,rate=57142,timeout=0.5):
+    def __init__(self, portname,rate=57142,timeout=0.04):
         """
         DO NOT CHANGE THE DEFAULT BAUDRATE HERE: 57142 is the factory setting of Dynamixel motors
         """

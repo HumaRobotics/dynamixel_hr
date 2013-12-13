@@ -195,7 +195,7 @@ class MotorsWindow:
         self.window.title("Motors")        
 
         self.window.protocol("WM_DELETE_WINDOW", self.destroy)
-        self.window.bind('<Key-Escape>', self.destroy )
+        self.window.bind('<Key-Escape>', lambda event: self.destroy() )
         
         self.frame=Frame(self.window, width= 300, height= 200)
         
@@ -650,6 +650,9 @@ class MainWindow:
             self.conf=self.chain.get_configuration(broadcast=self.doBroadcast.get())            
         except dxlcore.DxlConfigurationException,e:            
             tkMessageBox.showerror("Configuration Error","Could not instantiate motor: \n"+str(e))
+        except dxlcore.DxlCommunicationException,e:
+            tkMessageBox.showerror("Communication Error","Could not communicate with motor (could be due to overlapping IDs, try on single motors): \n"+str(e))
+            return
         
         if populateList:
             for id in self.chain.motors.keys():

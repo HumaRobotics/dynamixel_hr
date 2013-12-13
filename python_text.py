@@ -17,15 +17,21 @@ class PythonText(Text):
         self.addPattern('"[^"]*"',"string")
         keywords=keyword.kwlist
         for k in keywords:
+            self.addPattern("\w%s"%k,"normal")
+        for k in keywords:
             self.addPattern("%s(?!\\w)"%k,"keyword")
         
         
     def createTags(self):
+        self.tag_configure("normal",foreground="#000000")
         self.tag_configure("comment",foreground="#007f00")
         self.tag_configure("keyword",foreground="#0000Af")
         self.tag_configure("string",foreground="#7f007f")
+        self.tag_lower("keyword")
+        self.tag_raise("comment")
 
     def deleteTags(self):
+        self.tag_delete("normal")
         self.tag_delete("comment")
         self.tag_delete("keyword")
         self.tag_delete("string")
