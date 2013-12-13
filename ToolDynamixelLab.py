@@ -86,19 +86,45 @@ chain.goto(id,100,speed=0) # Full speed back to pos 100
         self.window.bind('<Key-Escape>', self.destroy )
         
         self.frame=Frame(self.window, width= 300, height= 200)
-        
+        self.buildMenu(self.window)
+
         self.pythonFrame=LabelFrame(self.frame,text="Python code")
         self.textTask=PythonText(self.pythonFrame,width=60,height=30)
         self.textTask.pack()
         self.pythonFrame.grid(row=0,column=0)
         self.textTask.insert(END,self.defaultCode)
-        Button(self.frame,text="Execute",command=self.execute).grid(column=0,row=1)
+        
         self.evaluator=Evaluator()
         self.evaluator.bindSymbol("chain",self.chain)
         self.textTask.colorize()
         
+        scrly = Scrollbar(self.frame, command=self.textTask.yview)
+        self.textTask.config(yscrollcommand=scrly.set)
+        scrly.grid(column=1,row=0,sticky="ns")
+        
+        #~ scrlx = Scrollbar(self.frame, command=self.textTask.xview,orient=HORIZONTAL)
+        #~ self.textTask.config(xscrollcommand=scrlx.set)
+        #~ scrlx.grid(column=0,row=1,sticky="ew")
+
+        Button(self.frame,text="Execute",command=self.execute).grid(column=0,row=1)
+
+
         self.frame.pack()
         
+
+    def buildMenu(self, root):
+        menubar = Menu(root)
+        root.config(menu=menubar)
+
+        filemenu = Menu(menubar)
+        menubar.add_cascade(label='File', menu=filemenu)
+
+        #~ filemenu.add_command(label='Open', command=sys.exit)
+        #~ filemenu.add_separator(  )
+        filemenu.add_command(label='Save...', command=self.save)
+        filemenu.add_command(label='Load...', command=self.load)
+
+
     def destroy(self):
         self.parent.pythonWindow=None
         self.window.destroy()
@@ -113,10 +139,30 @@ chain.goto(id,100,speed=0) # Full speed back to pos 100
             
         
         
-        
-
-
-
+    def save(self):
+        options={}
+        options['defaultextension'] = '.py'
+        options['filetypes'] = [('Python script', '.py'),('all files', '.*')]
+        file=tkFileDialog.asksaveasfilename(**options)
+        if file:
+            txt=self.textTask.get(1.0,END)
+            f=open(file,"w")
+            f.write(txt)
+            f.close()
+    
+    def load(self):
+        options={}
+        options['defaultextension'] = '.py'
+        options['filetypes'] = [('Python script', '.py'),('all files', '.*')]
+        file=tkFileDialog.askopenfilename(**options)
+        if file:
+            self.textTask.delete(1.0,END)
+            f=open(file,"r")
+            txt=f.read()
+            f.close()
+            self.textTask.insert(END,txt)
+            self.textTask.colorize()
+    
 
 class RosWindow(Thread):
 
