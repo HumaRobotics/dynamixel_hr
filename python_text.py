@@ -16,10 +16,12 @@ class PythonText(Text):
         self.addPattern("'[^']*'","string")
         self.addPattern('"[^"]*"',"string")
         keywords=keyword.kwlist
+        #~ for k in keywords:
+            #~ self.addPattern("\w%s"%k,"normal")
         for k in keywords:
-            self.addPattern("\w%s"%k,"normal")
+            self.addPattern("^%s(?!\\w)"%k,"keyword")
         for k in keywords:
-            self.addPattern("%s(?!\\w)"%k,"keyword")
+            self.addPattern("[ \t]%s(?!\\w)"%k,"keyword")
         
         
     def createTags(self):
@@ -67,3 +69,48 @@ class PythonText(Text):
             self.mark_set("matchStart", index)
             self.mark_set("matchEnd", "%s+%sc" % (index,count.get()))
             self.tag_add(tag, "matchStart","matchEnd")
+            
+if __name__=="__main__":
+
+    class PythonWindow:
+
+        def __init__(self, master):
+            self.master=master
+            
+            self.defaultCode="""
+# Use the 'chain' object to access motors
+# Here is an example that assumes a motor on ID 1
+
+id=1
+
+chain.goto(id,0,speed=0) # Full speed to pos 0
+chain.goto(id,1000,speed=100) # Low speed to pos 1000
+chain.goto(id,500,blocking=False) # Current speed to pos 500
+while chain.is_moving():
+    print chain.get_reg_si(id,"present_position")
+chain.goto(id,100,speed=0) # Full speed back to pos 100   
+            """
+            
+            
+            self.frame=Frame(self.master)
+            
+            self.pythonFrame=LabelFrame(self.frame,text="Python code")
+            self.textTask=PythonText(self.pythonFrame,width=60,height=30)
+            self.textTask.pack()
+            self.pythonFrame.grid(row=0,column=0)
+            self.textTask.insert(END,self.defaultCode)
+            self.textTask.colorize()
+            
+            self.frame.pack()
+            
+            
+        
+
+    root = Tk()
+    appname="DynamixelLab"
+    root.title(appname)
+    mainwindow = PythonWindow(root)
+    #~ root.protocol("WM_DELETE_WINDOW", mainwindow.destroy)
+    root.mainloop()
+
+    
