@@ -26,7 +26,7 @@ At the moment it can handle the following models:
     * MX64*
     * CM730
 
-Adding other models is very easy, have a look in :mod:`dxlmotors` and simply add the corresponding model class that will contain the definitions of registers and conversion functions.
+Adding other models is very easy, have a look in :mod:`dxl.dxlmotors` and simply add the corresponding model class that will contain the definitions of registers and conversion functions.
 
 
 
@@ -125,28 +125,52 @@ Run the ToolDynamixelLab with ROS bindings::
 Scan or connect to your motor chain, click on the ROS button to activate bindings (either Raw or international system units SI).
 
 
-Indices and tables
-==================
+Library
+=======
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+The provided Dynamixel Library is composed of several modules. However, from a user perspective only two of them are actually needed. The main one is :mod:`dxl.dxlchain` and provides Python access to the Dynamixel motors. The second one is :mod:`dxl.dxlros` which provides the ROS bindings.
 
+
+
+
+The DxlChain module
+-------------------
+This modules provides access to the Dynamixel motors. It provides low-level communication functions with the serial port on which the motors are chained. A typical usage code would look like the following:
+
+.. code:: python
+
+ from dxl.dxlchain import DxlChain
+ 
+ chain=DxlChain("/dev/ttyUSB0",rate=1000000)
+ chain.get_configuration() # Automatic loading of the chain configuration and motors
+ chain.goto(1,500) # Motor ID 1 is sent to position 500
+
+Available methods are the following:
 
 .. automodule:: dxl.dxlchain
    :members:
+
+The DxlROS module
+-----------------
+.. automodule:: dxl.dxlros
+   :members:
+
+Internal modules
+----------------
 .. automodule:: dxl.dxlcore
    :members:
 .. automodule:: dxl.dxlmotors
    :members:
 .. automodule:: dxl.dxlregisters
    :members:
-.. automodule:: dxl.dxlros
-   :members:
 
 
-.. code:: python
 
- def my_function():
-     "just a test"
-     print 8/2
+     
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
+     

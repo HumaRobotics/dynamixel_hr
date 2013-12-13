@@ -6,12 +6,16 @@
 
         
 import logging
-import roslib
-import rospy
+try:
+    import roslib
+    import rospy
+    from sensor_msgs.msg import *
+    from std_msgs.msg import *
+except:
+    logging.warning("Could not load ROS libraries, make sure ROS is installed and your environment variables are properly set")
+
 from threading import Thread
 
-from sensor_msgs.msg import *
-from std_msgs.msg import *
 
 class DxlROS(Thread):
     default_published=["present_position"]
