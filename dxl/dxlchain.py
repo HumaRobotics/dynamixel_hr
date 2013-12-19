@@ -68,8 +68,14 @@ class DxlChain:
         except:
             logging.warning("Could not close port %s"%self.portname)
     
-    def reopen(self):
+    def reopen(self,portname=None,rate=None,timeout=None):
         """Reopens the serial port"""
+        if portname:
+            self.portname=portname
+        if rate:
+            self.rate=rate
+        if timeout:
+            self.timeout=timeout
         with self.lock:
             self._close()
             self._open()

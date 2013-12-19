@@ -590,7 +590,10 @@ class MainWindow:
     def open(self,rate):
         self.close()
         comPort=self.comPort.get()
-        self.chain=dxlchain.DxlChain(comPort,rate=rate,timeout=self.timeout.get())
+        if not self.chain:
+            self.chain=dxlchain.DxlChain(comPort,rate=rate,timeout=self.timeout.get())
+        else:
+            self.chain.reopen(portname=comPort,rate=rate,timeout=self.timeout.get())
         
 
     def test(self):
@@ -611,13 +614,13 @@ class MainWindow:
         if self.rosWindow:
             self.rosWindow.destroy()
             self.rosWindow=None
-        if self.pythonWindow:
-            self.pythonWindow.destroy()
-            self.pythonWindow=None
+        #~ if self.pythonWindow:
+            #~ self.pythonWindow.destroy()
+            #~ self.pythonWindow=None
         if self.chain:
             try:
                 self.chain.close()
-                self.chain=None
+                #~ self.chain=None
             except:
                 loggin.warning("WARNING: could not close chain")
         
