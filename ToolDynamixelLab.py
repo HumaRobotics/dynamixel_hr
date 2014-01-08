@@ -163,69 +163,6 @@ chain.goto(id,100,speed=0) # Full speed back to pos 100
             self.textTask.colorize()
     
 
-class RosWindow(Thread):
-
-    def __init__(self, master,parent):
-        Thread.__init__(self)
-        self.master=master
-        self.parent=parent
-        self.chain=parent.chain
-        
-        self.window=Toplevel(self.master)
-        title="ROS"
-            
-        self.window.title(title)
-
-        self.window.protocol("WM_DELETE_WINDOW", self.destroy)
-        self.window.bind('<Key-Escape>', self.destroy )
-        
-        self.frame=Frame(self.window)
-
-        self.publishersFrame=self.buildPublishersFrame()
-        self.publishersFrame.grid(row=0,column=0)
-
-        self.subscribersFrame=self.buildSubscribersFrame()
-        self.subscribersFrame.grid(row=0,column=1)
-
-        Button(self.frame,text="Close",command=self.destroy).grid(column=0,row=1,columnspan=2)
-                
-        self.frame.pack()
-        self.start()
-        
-    def buildPublishersFrame(self):
-        frame=LabelFrame(self.frame,text="Topics published")
-        self.listPublishers = Listbox(frame,width=50,height=20)
-        self.listPublishers.grid(row=0,column=0)
-        return frame
-
-    def buildSubscribersFrame(self):
-        frame=LabelFrame(self.frame,text="Topics subscribed")
-        self.listSubscribers= Listbox(frame,width=50,height=20)
-        self.listSubscribers.grid(row=0,column=0)
-        return frame
-    
-    def run(self):
-        import rospy
-        from dxl import dxlros
-        rospy.init_node("dxl")
-        self.dxlros=dxlros.DxlROS(self.chain,rate=100)
-        for topic in self.dxlros.publishers:
-            self.listPublishers.insert(END,topic)
-        for topic in self.dxlros.subscribers:
-            self.listSubscribers.insert(END,topic)
-        rospy.spin()        
-        
-    def destroy(self):
-        import rospy
-        try:
-            self.dxlros.stop()
-        except Exception,e:
-            print "Could not stop dxlros: "+str(e)
-            
-        #~ rospy.shutdown()        
-        self.parent.rosWindow=None
-        self.window.destroy()
-    
 
 
 class MotorsWindow:
@@ -313,7 +250,6 @@ class MainWindow:
         self.master=master
 
         self.motorsWindow=None
-        self.rosWindow=None
         self.pythonWindow=None
         
         self.chain=None
@@ -418,8 +354,6 @@ class MainWindow:
         Button(frame,text="Save Pose",command=self.savePose).grid(column=1,row=6)
         Button(frame,text="Load Pose",command=self.loadPose).grid(column=1,row=7)
         
-        if "--ros" in sys.argv:
-            Button(frame,text="Start ROS SI",command=lambda: self.createRosWindow()).grid(column=1,row=8)
 
         return frame
 
@@ -568,12 +502,6 @@ class MainWindow:
         #~ self.pythonWindow=EditorWindow(root=self.master)
         
                 
-    def createRosWindow(self):
-        if not self.chain:
-            tkMessageBox.showerror("Chain Error","Please connect to a valid chain first")
-            return
-        if self.rosWindow==None:
-            self.rosWindow=RosWindow(self.master,self)
                 
     def exit(self,event=None):
         self.close()
@@ -603,9 +531,6 @@ class MainWindow:
         if self.motorsWindow:
             self.motorsWindow.destroy()
             self.motorsWindow=None
-        if self.rosWindow:
-            self.rosWindow.destroy()
-            self.rosWindow=None
         #~ if self.pythonWindow:
             #~ self.pythonWindow.destroy()
             #~ self.pythonWindow=None
@@ -747,9 +672,6 @@ class MainWindow:
 
         
 
-if "--ros" in sys.argv:
-    import rospy
-    rospy.init_node("dxl")
 
 
 root = Tk()
@@ -765,6 +687,3 @@ mainwindow = MainWindow(root)
 root.protocol("WM_DELETE_WINDOW", mainwindow.exit)
 root.mainloop()
 
-if "--ros" in sys.argv:
-    import rospy
-    rospy.signal_shutdown("End of Application")

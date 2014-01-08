@@ -6,8 +6,8 @@
 Welcome to HumaRobotics Dynamixel Library documentation!
 ########################################################
 
-HumaRobotics Dynamixel Library is a Python 2.7 library for programming Robotis Dynamixel motors directly from python or through the ROS bindings provided.
-It also comes with a GUI that allows to quickly identify/configure/manipulate your motors and expose them to a ROS master.
+HumaRobotics Dynamixel Library is a Python 2.7 library for programming Robotis Dynamixel motors directly from python or through the ROS bindings provided separately.
+It also comes with a GUI that allows to quickly identify/configure/manipulate your motors.
 
 .. toctree::
     :maxdepth: 1
@@ -101,29 +101,6 @@ Access to the serial device (/tty/USB0 by default) needs special rights, so you'
 
     sudo usermod -a -G dialout username
     
-
-ROS Bindings
-============
-
-Install ROS Groovy (on Ubuntu 12.04)::
-
-    sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu precise main" > /etc/apt/sources.list.d/ros-latest.list'
-    wget http://packages.ros.org/ros.key -O - | sudo apt-key add -
-    sudo apt-get update
-    sudo apt-get install ros-groovy-desktop-full
-
-Run a ROS master::
-
-    source /opt/ros/groovy/setup.bash
-    roscore
-  
-Run the ToolDynamixelLab with ROS bindings::
-
-    source /opt/ros/groovy/setup.bash
-    python ToolDynamixelLab.py --ros
-
-Scan or connect to your motor chain, click on the ROS button to activate bindings (either Raw or international system units SI).
-
 
 Library
 =======
