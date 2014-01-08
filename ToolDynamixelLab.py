@@ -222,7 +222,11 @@ class RosWindow(Thread):
         
     def destroy(self):
         import rospy
-        self.dxlros.stop()
+        try:
+            self.dxlros.stop()
+        except Exception,e:
+            print "Could not stop dxlros: "+str(e)
+            
         #~ rospy.shutdown()        
         self.parent.rosWindow=None
         self.window.destroy()

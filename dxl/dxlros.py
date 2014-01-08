@@ -28,7 +28,8 @@ class DxlROS(Thread):
         self.bindings=bindings
         self.raw=raw
         self.publishers=[]
-        self.subscribers=[]
+        self.subscribers=[]        
+        self.pub={}
         
         self.do_stop=False
         
@@ -46,8 +47,13 @@ class DxlROS(Thread):
         
         rospy.Subscriber("/dxl/enable",Bool,self.enable)
         
-        self.buildPublishers()
-        self.buildSubscribers()
+        if raw:    
+            self.buildRawPublishers()
+            self.buildRawSubscribers()
+        else:
+            self.buildSIPublishers()
+            self.buildSISubscribers()
+
         
         self.start()
     
@@ -55,69 +61,78 @@ class DxlROS(Thread):
         r=rospy.Rate(float(self.rate))
         while not rospy.is_shutdown() and not self.do_stop:
             if self.raw:
-                for id,motorname in self.bindings.items():
-                    regs=self.chain.motors[id].registers
-                    basename="/dxl/%s/"%motorname
-                    for regname,reg in regs.items():
-                        topic=basename+regname
-                        v=self.chain.get_reg(id,regname)
-                        self.pub[topic].publish(v) 
+                self.publishRaw()
             else:
-                for id,motorname in self.bindings.items():
-                    regs=self.chain.motors[id].registers
-                    basename="/dxl/%s/"%motorname
-                    for regname in self.default_published:
-                        topic=basename+regname
-                        v=self.get_register_si(id,regname)
-                        self.pub[topic].publish(v)
-
+                self.publishSI()
             r.sleep()
+        
+    def publishSI(self):
+        for id,motorname in self.bindings.items():
+            regs=self.chain.motors[id].registers
+            basename="/dxl/%s/"%motorname
+            for regname in self.default_published:
+                topic=basename+regname
+                v=self.get_register_si(id,regname)
+                self.pub[topic].publish(v)
+
+    
+    def publishRaw(self):
+        for id,motorname in self.bindings.items():
+            regs=self.chain.motors[id].registers
+            basename="/dxl/%s/"%motorname
+            for regname,reg in regs.items():
+                topic=basename+regname
+                v=self.chain.get_reg(id,regname)
+                self.pub[topic].publish(v) 
+        
+    
         
         
     def stop(self):
         self.do_stop=True
     
-    def buildPublishers(self):
-        self.pub={}
+    def buildSIPublishers(self):
+        print("Creating SI ROS Publishers")
+        for id,motorname in self.bindings.items():
+            regs=self.chain.motors[id].registers
+            basename="/dxl/%s/"%motorname
+            for regname in self.default_published:
+                topic=basename+regname
+                print("Creating SI ROS Publisher: %s"%topic)
+                self.pub[topic]=rospy.Publisher(topic,Float64)                
+                self.publishers.append(topic)
+                
+    
+    def buildRawPublishers(self):
         print("Creating ROS Publishers")
-        if self.raw:
-            for id,motorname in self.bindings.items():            
-                regs=self.chain.motors[id].registers
-                basename="/dxl/%s/"%motorname
-                for regname,reg in regs.items():
-                    topic=basename+regname
-                    print("Creating raw ROS Publisher: %s"%topic)
-                    self.pub[topic]=rospy.Publisher(topic,Int32)
-                    self.publishers.append(topic)
-        else:
-            for id,motorname in self.bindings.items():
-                regs=self.chain.motors[id].registers
-                basename="/dxl/%s/"%motorname                
-                for regname in self.default_published:
-                    topic=basename+regname
-                    print("Creating SI ROS Publisher: %s"%topic)
-                    self.pub[topic]=rospy.Publisher(topic,Float64)                
-                    self.publishers.append(topic)
+        for id,motorname in self.bindings.items():            
+            regs=self.chain.motors[id].registers
+            basename="/dxl/%s/"%motorname
+            for regname,reg in regs.items():
+                topic=basename+regname
+                print("Creating raw ROS Publisher: %s"%topic)
+                self.pub[topic]=rospy.Publisher(topic,Int32)
+                self.publishers.append(topic)
 
-    def buildSubscribers(self):
-        if self.raw:
-            for id,motorname in self.bindings.items():            
-                regs=self.chain.motors[id].registers
-                basename="/dxl/%s/"%motorname
-                for regname,reg in regs.items():
-                    if 'w' in reg.mode:
-                        topic=basename+regname+"/set"
-                        print("Creating raw ROS Subscriber: %s"%topic)
-                        rospy.Subscriber(topic,Int32,lambda msg,id=id,regname=regname: self.set_register(msg,id,regname) )
-                        self.subscribers.append(topic)
-        else:
-            for id,motorname in self.bindings.items():
-                regs=self.chain.motors[id].registers
-                basename="/dxl/%s/"%motorname
-                for regname in self.default_subscribed:
+    def buildSISubscribers(self):
+        for id,motorname in self.bindings.items():
+            regs=self.chain.motors[id].registers
+            basename="/dxl/%s/"%motorname
+            for regname in self.default_subscribed:
+                topic=basename+regname+"/set"
+                print("Creating SI ROS Subscriber: %s"%topic)
+                rospy.Subscriber(topic,Float64,lambda msg,id=id,regname=regname: self.set_register_si(msg,id,regname) )
+                self.subscribers.append(topic)
+            
+    def buildRawSubscribers(self):
+        for id,motorname in self.bindings.items():            
+            regs=self.chain.motors[id].registers
+            basename="/dxl/%s/"%motorname
+            for regname,reg in regs.items():
+                if 'w' in reg.mode:
                     topic=basename+regname+"/set"
-                    print("Creating SI ROS Subscriber: %s"%topic)
-                    rospy.Subscriber(topic,Float64,lambda msg,id=id,regname=regname: self.set_register_si(msg,id,regname) )
+                    print("Creating raw ROS Subscriber: %s"%topic)
+                    rospy.Subscriber(topic,Int32,lambda msg,id=id,regname=regname: self.set_register(msg,id,regname) )
                     self.subscribers.append(topic)
             
             
