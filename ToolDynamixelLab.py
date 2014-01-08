@@ -165,19 +165,14 @@ chain.goto(id,100,speed=0) # Full speed back to pos 100
 
 class RosWindow(Thread):
 
-    def __init__(self, master,parent,raw=False):
+    def __init__(self, master,parent):
         Thread.__init__(self)
         self.master=master
         self.parent=parent
         self.chain=parent.chain
-        self.raw=raw
         
         self.window=Toplevel(self.master)
-        title="ROS SI"
-        if raw:
-            title="ROS Raw"
-        else:
-            title="ROS SI"
+        title="ROS"
             
         self.window.title(title)
 
@@ -213,7 +208,7 @@ class RosWindow(Thread):
         import rospy
         from dxl import dxlros
         rospy.init_node("dxl")
-        self.dxlros=dxlros.DxlROS(self.chain,rate=100,raw=self.raw)
+        self.dxlros=dxlros.DxlROS(self.chain,rate=100)
         for topic in self.dxlros.publishers:
             self.listPublishers.insert(END,topic)
         for topic in self.dxlros.subscribers:
@@ -424,8 +419,7 @@ class MainWindow:
         Button(frame,text="Load Pose",command=self.loadPose).grid(column=1,row=7)
         
         if "--ros" in sys.argv:
-            Button(frame,text="Start ROS Raw",command=lambda: self.createRosWindowRaw()).grid(column=1,row=8)
-            Button(frame,text="Start ROS SI",command=lambda: self.createRosWindowSI()).grid(column=1,row=9)
+            Button(frame,text="Start ROS SI",command=lambda: self.createRosWindow()).grid(column=1,row=8)
 
         return frame
 
@@ -573,19 +567,13 @@ class MainWindow:
         #~ from idlelib.PyShell import EditorWindow
         #~ self.pythonWindow=EditorWindow(root=self.master)
         
-    def createRosWindowRaw(self):
-        if not self.chain:
-            tkMessageBox.showerror("Chain Error","Please connect to a valid chain first")
-            return
-        if self.rosWindow==None:
-            self.rosWindow=RosWindow(self.master,self,raw=True)
                 
-    def createRosWindowSI(self):
+    def createRosWindow(self):
         if not self.chain:
             tkMessageBox.showerror("Chain Error","Please connect to a valid chain first")
             return
         if self.rosWindow==None:
-            self.rosWindow=RosWindow(self.master,self,raw=False)
+            self.rosWindow=RosWindow(self.master,self)
                 
     def exit(self,event=None):
         self.close()
