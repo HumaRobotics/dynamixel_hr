@@ -124,14 +124,8 @@ If required you can install the library by running the following command from th
 Library
 =======
 
-The provided Dynamixel Library is composed of several modules. However, from a user perspective only two of them are actually needed. The main one is :mod:`dxl.dxlchain` and provides Python access to the Dynamixel motors. The second one is :mod:`dxl.dxlros` which provides the ROS bindings.
-
-
-
-
-The DxlChain module
--------------------
-This modules provides access to the Dynamixel motors. It provides low-level communication functions with the serial port on which the motors are chained. A typical usage code would look like the following:
+The provided Dynamixel Library is composed of several modules. However, from a user perspective only two of them are actually needed. The main one is :mod:`dxl.dxlchain` and provides Python access to the Dynamixel motors.
+Here is a typical code example:
 
 .. code:: python
 
@@ -157,6 +151,13 @@ This modules provides access to the Dynamixel motors. It provides low-level comm
     chain.disable()    
 
 
+
+
+
+
+The DxlChain module
+-------------------
+This modules provides access to the Dynamixel motors. It provides low-level communication functions with the serial port on which the motors are chained. 
 Available methods are the following:
 
 .. automodule:: dxl.dxlchain
