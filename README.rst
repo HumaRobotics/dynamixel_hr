@@ -132,7 +132,7 @@ You can start the Dynamixel Lab by running::
 Library
 =======
 
-The provided Dynamixel Library is composed of several modules. However, from a user perspective only two of them are actually needed. The main one is dxl.dxlchain which provides Python access to the Dynamixel motors.
+The provided Dynamixel Library is composed of several modules. However, from a user perspective only the dxl.dxlchain which provides Python access to the Dynamixel motors is directly used.
 Here is a typical code example:
 
 .. code:: python
@@ -151,7 +151,7 @@ Here is a typical code example:
     chain.goto(1,100)                    # Motor ID 1 is sent to position 100 with last speed value
 
     # Move and print current position of all motors while moving
-    chain.goto(1,1000,speed=20,blocking=False) # Motor ID 1 is sent to position 1000 at low speed, non blocking call
+    chain.goto(1,1000,speed=20,blocking=False) # Motor ID 1 is sent to position 1000
     while chain.is_moving():
         print chain.get_pose()
 
