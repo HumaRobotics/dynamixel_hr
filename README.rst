@@ -115,7 +115,11 @@ Install python and pyserial::
 Access to the serial device (/tty/USB0 by default) needs special rights, so you'll need either to sudo or add your user to the dialout group::
 
     sudo usermod -a -G dialout username
-    
+
+If required you can install the library by running the following command from the dynamixel_hr folder::
+
+    python setup.py install
+
 
 Library
 =======
