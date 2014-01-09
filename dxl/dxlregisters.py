@@ -25,5 +25,5 @@ class DxlRegisterByte(DxlRegister):
 
 class DxlRegisterWord(DxlRegister):
     def __init__(self,address,mode='r',eeprom=False,fromsi=lambda x:x,tosi=lambda x:x,range=None):
-        DxlRegister.__init__(self,address,2,mode,eeprom,fromdxl=lambda x:x[0]+(x[1]<<8),todxl=lambda x:[x&0xFF,(x>>8)&0xFF] ,range=range,fromsi=fromsi,tosi=tosi)
+        DxlRegister.__init__(self,address,2,mode,eeprom,fromdxl=lambda x:x[0]+(x[1]<<8),todxl=lambda x:[int(x)&0xFF,(int(x)>>8)&0xFF] ,range=range,fromsi=fromsi,tosi=tosi)
 

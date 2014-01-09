@@ -5,10 +5,12 @@
 
 from dxlcore import *
 from dxlregisters import *
+import math
 
 
 
-
+RPMTORAD=2.0*math.pi/60.0
+RADTORPM=60.0/(2.0*math.pi)
 
 class DxlMotor(DxlElement):    
     def __init__(self):
@@ -21,6 +23,7 @@ class DxlMotor(DxlElement):
 
     
 class DxlMotorAXMX(DxlMotor):
+    
     def __init__(self):
         DxlMotor.__init__(self)
 
@@ -45,10 +48,10 @@ class DxlMotorAXMX(DxlMotor):
         # Here goes compliance or PID or DIP
         
         self.registers["goal_pos"]=             DxlRegisterWord(0x1E,'rw')
-        self.registers["moving_speed"]=         DxlRegisterWord(0x20,'rw')
+        self.registers["moving_speed"]=         DxlRegisterWord(0x20,'rw',tosi=self.speed_to_si,fromsi=self.si_to_speed)
         self.registers["torque_limit"]=         DxlRegisterWord(0x22,'rw',range=[0,1023])
         self.registers["present_position"]=     DxlRegisterWord(0x24,'r',tosi=self.pos_to_si,fromsi=self.si_to_pos)
-        self.registers["present_speed"]=        DxlRegisterWord(0x26,'r')
+        self.registers["present_speed"]=        DxlRegisterWord(0x26,'r',tosi=self.speed_to_si,fromsi=self.si_to_speed)
         self.registers["present_load"]=         DxlRegisterWord(0x28,'r')
 
         self.registers["present_voltage"]=      DxlRegisterByte(0x2A,'r')
@@ -63,12 +66,18 @@ class DxlMotorAXMX(DxlMotor):
     def pos_to_si(self,pos):
         return self.tick_to_rad*float(pos)
 
+    def speed_to_si(self,v):
+        return RPMTORAD*self.tick_to_rpm*float(v)
+
     def si_to_pos(self,si):
         return int(float(si)/self.tick_to_rad)        
 
+    def si_to_speed(self,v):
+        return RADTORPM*float(v)/self.tick_to_rpm
+
 
 class DxlMotorAX12(DxlMotorAXMX):
-
+    tick_to_rpm=0.111
     tick_to_rad=0.00506145483078355577307870322862
 
     def __init__(self):
@@ -80,7 +89,7 @@ class DxlMotorAX12(DxlMotorAXMX):
         self.registers["ccw_compliance_slope"]= DxlRegisterByte(0x1D,'rw')
 
         self.registers["goal_pos"]=             DxlRegisterWord(0x1E,'rw',range=[0,1023],tosi=self.pos_to_si,fromsi=self.si_to_pos)
-        self.registers["moving_speed"]=         DxlRegisterWord(0x20,'rw',range=[0,1023])
+        self.registers["moving_speed"]=         DxlRegisterWord(0x20,'rw',range=[0,1023],tosi=self.speed_to_si,fromsi=self.si_to_speed)
 
         self.sort()
 
@@ -111,6 +120,7 @@ class DxlMotorAX18(DxlMotorAXMX):
     model_number=18
     documentation_url="http://support.robotis.com/en/product/dynamixel/ax_series/ax-18f.htm"    
     tick_to_rad=0.00506145483078355577307870322862
+    tick_to_rpm=0.111
     
     def __init__(self):
         DxlMotorAXMX.__init__(self)
@@ -121,7 +131,7 @@ class DxlMotorAX18(DxlMotorAXMX):
         self.registers["ccw_compliance_slope"]= DxlRegisterByte(0x1D,'rw')
 
         self.registers["goal_pos"]=             DxlRegisterWord(0x1E,'rw',range=[0,1023],tosi=self.pos_to_si,fromsi=self.si_to_pos)
-        self.registers["moving_speed"]=         DxlRegisterWord(0x20,'rw',range=[0,1023])
+        self.registers["moving_speed"]=         DxlRegisterWord(0x20,'rw',range=[0,1023],tosi=self.speed_to_si,fromsi=self.si_to_speed)
 
         self.sort()
                 
@@ -133,6 +143,7 @@ class DxlMotorMX28(DxlMotorAXMX):
     model_number=29
     documentation_url="http://support.robotis.com/en/product/dynamixel/rx_series/mx-28.htm"    
     tick_to_rad=0.00153588974175501002769284787627
+    tick_to_rpm=0.053
 
     def __init__(self):
         DxlMotorAXMX.__init__(self)
@@ -142,7 +153,7 @@ class DxlMotorMX28(DxlMotorAXMX):
         self.registers["d_gain"]=               DxlRegisterByte(0x1C,'rw')
         
         self.registers["goal_pos"]=             DxlRegisterWord(0x1E,'rw',range=[0,4095],tosi=self.pos_to_si,fromsi=self.si_to_pos)
-        self.registers["moving_speed"]=         DxlRegisterWord(0x20,'rw',range=[0,1023])
+        self.registers["moving_speed"]=         DxlRegisterWord(0x20,'rw',range=[0,1023],tosi=self.speed_to_si,fromsi=self.si_to_speed)
 
         self.sort()
 
@@ -152,6 +163,7 @@ class DxlMotorMX64(DxlMotorAXMX):
     model_number=310
     documentation_url="http://support.robotis.com/en/product/dynamixel/mx_series/mx-64.htm"
     tick_to_rad=0.00153588974175501002769284787627
+    tick_to_rpm=0.114
 
     def __init__(self):
         DxlMotorAXMX.__init__(self)
@@ -161,6 +173,6 @@ class DxlMotorMX64(DxlMotorAXMX):
         self.registers["p_gain"]=               DxlRegisterByte(0x1C,'rw')
 
         self.registers["goal_pos"]=             DxlRegisterWord(0x1E,'rw',range=[0,4095],tosi=self.pos_to_si,fromsi=self.si_to_pos)
-        self.registers["moving_speed"]=         DxlRegisterWord(0x20,'rw',range=[0,1023])
+        self.registers["moving_speed"]=         DxlRegisterWord(0x20,'rw',range=[0,1023],tosi=self.speed_to_si,fromsi=self.si_to_speed)
         
         self.sort()
