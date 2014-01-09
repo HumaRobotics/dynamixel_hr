@@ -74,7 +74,18 @@ It provides the following features:
    *Python window of the Dynamixel Lab GUI*
 
    The Python window can be used for direct programming of the motors using the provided API. The python context is already prepared so you don't need to import or instantiante anything, making the code minimal. 
-   
+
+
+
+Download
+=======
+You can obtain the latest sources using our Git repository:
+git clone git@github.com/HumaRobotics:dynamixel_hr
+
+You can also download the latest release as a compressed archive from:
+http://www.humarobotics.com/downloads/dynamixel_hr.zip
+
+
 
 Installation
 ============
@@ -90,7 +101,11 @@ Setup drivers for USB2Dynamixel:
 Setup python and pyserial:
     * Install Python 2.7 from http://www.python.org/ftp/python/2.7.6/python-2.7.6.msi
     * Install pyserial from https://pypi.python.org/packages/any/p/pyserial/pyserial-2.7.win32.exe
-    
+
+If required you can install the library by running the following command from the dynamixel_hr folder::
+
+    python setup.py install
+
 Ubuntu
 ------
 Install python and pyserial::
@@ -116,21 +131,33 @@ This modules provides access to the Dynamixel motors. It provides low-level comm
 
 .. code:: python
 
- from dxl.dxlchain import DxlChain
+    from dxl.dxlchain import DxlChain
  
- chain=DxlChain("/dev/ttyUSB0",rate=1000000)
- chain.get_configuration() # Automatic loading of the chain configuration and motors
- chain.goto(1,500) # Motor ID 1 is sent to position 500
+    # Open the serial device
+    chain=DxlChain("/dev/ttyUSB0",rate=3000000)
+
+    # Load all the motors and obtain the list of IDs
+    motors=chain.get_motor_list() # Discover all motors on the chain and return their IDs
+    print motors
+
+    # Move a bit
+    chain.goto(1,500,speed=200) # Motor ID 1 is sent to position 500 with high speed
+    chain.goto(1,100)                    # Motor ID 1 is sent to position 100 with last speed value
+
+    # Move and print current position of all motors while moving
+    chain.goto(1,1000,speed=20,blocking=False) # Motor ID 1 is sent to position 1000 at low speed, non blocking call
+    while chain.is_moving():
+        print chain.get_pose()
+
+    # Disable the motors
+    chain.disable()    
+
 
 Available methods are the following:
 
 .. automodule:: dxl.dxlchain
    :members:
 
-The DxlROS module
------------------
-.. automodule:: dxl.dxlros
-   :members:
 
 Internal modules
 ----------------

@@ -657,7 +657,7 @@ class MainWindow:
         options['filetypes'] = [('pose files', '.position'),('all files', '.*')]
         file=tkFileDialog.asksaveasfilename(**options)
         if file:                        
-            self.chain.save_pose(file)
+            self.chain.save_position(file)
 
     def loadPose(self):
         if not self.chain:
@@ -668,7 +668,7 @@ class MainWindow:
         options['filetypes'] = [('pose files', '.position'),('all files', '.*')]
         file=tkFileDialog.askopenfilename(**options)
         if file:
-            self.chain.load_pose(file)
+            self.chain.load_position(file)
 
         
 
