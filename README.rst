@@ -1,9 +1,4 @@
-.. dynamixel_hr documentation master file, created by
-   sphinx-quickstart on Tue Dec 10 09:08:51 2013.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-Welcome to HumaRobotics Dynamixel Library documentation!
+HumaRobotics Dynamixel Library
 ########################################################
 
 HumaRobotics Dynamixel Library is a Python 2.7 library for programming Robotis Dynamixel motors directly from python or through the ROS bindings provided separately in https://github.com/HumaRobotics/dynamixel_hr_ros .
@@ -153,7 +148,7 @@ Here is a typical code example:
     # Move and print current position of all motors while moving
     chain.goto(1,1000,speed=20,blocking=False) # Motor ID 1 is sent to position 1000
     while chain.is_moving():
-        print chain.get_pose()
+        print chain.get_position()
 
     # Disable the motors
     chain.disable()    
