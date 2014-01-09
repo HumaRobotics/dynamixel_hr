@@ -118,13 +118,21 @@ Access to the serial device (/tty/USB0 by default) needs special rights, so you'
 
 If required you can install the library by running the following command from the dynamixel_hr folder::
 
-    python setup.py install
+    sudo python setup.py install
+    
+
+Dynamixel Lab Usage
+=============
+You can start the Dynamixel Lab by running::
+
+    python ToolDynamixelLab.py
+
 
 
 Library
 =======
 
-The provided Dynamixel Library is composed of several modules. However, from a user perspective only two of them are actually needed. The main one is :mod:`dxl.dxlchain` and provides Python access to the Dynamixel motors.
+The provided Dynamixel Library is composed of several modules. However, from a user perspective only two of them are actually needed. The main one is dxl.dxlchain which provides Python access to the Dynamixel motors.
 Here is a typical code example:
 
 .. code:: python
@@ -153,33 +161,3 @@ Here is a typical code example:
 
 
 
-
-
-The DxlChain module
--------------------
-This modules provides access to the Dynamixel motors. It provides low-level communication functions with the serial port on which the motors are chained. 
-Available methods are the following:
-
-.. automodule:: dxl.dxlchain
-   :members:
-
-
-Internal modules
-----------------
-.. automodule:: dxl.dxlcore
-   :members:
-.. automodule:: dxl.dxlmotors
-   :members:
-.. automodule:: dxl.dxlregisters
-   :members:
-
-
-
-     
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-     
