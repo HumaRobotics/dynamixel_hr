@@ -7,6 +7,7 @@
 from dxlcore import *
 from dxlregisters import *
 from dxlmotors import *
+from dxlsensors import *
 
 import sys
 import serial
@@ -530,5 +531,5 @@ class DxlChain:
         pos=dict()
         for k,v in d.items():
             pos[int(k)]=v            
-        self.set_pos(pos,blocking)
+        self.set_position(pos,blocking)
         
