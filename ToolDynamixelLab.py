@@ -23,6 +23,19 @@ from python_text import *
 
 searchRates=[57142,3000000,1000000,9600]
 
+def frate(data):
+    if data>=250:
+        if data==250: return 2250000
+        if data==251: return 2500000
+        if data==252: return 3000000
+        return 1000000
+    else:
+        return 2000000/(data+1)
+    
+        
+searchAllRates=[ frate(data) for data in range(0,253)]
+
+
 
 
 
@@ -290,6 +303,7 @@ class MainWindow:
             port="/dev/ttyUSB0"
         self.comPort.set(port)
         entryComPort = Entry(frame, textvariable=self.comPort)
+
         entryComPort.grid(column=1,row=0)        
         Button(frame,text="Scan",command=self.scan).grid(column=2,row=0)
 
@@ -390,6 +404,11 @@ class MainWindow:
         self.doBroadcast=BooleanVar()
         settingsmenu.add_checkbutton(label="Use Ping Broadcast", onvalue=True, offvalue=False, variable=self.doBroadcast)
         self.doBroadcast.set(True)        
+
+
+        self.doScanAll=BooleanVar()
+        settingsmenu.add_checkbutton(label="Scan All Rates", onvalue=True, offvalue=False, variable=self.doScanAll)
+        self.doScanAll.set(False)        
 
         #~ self.doHideInternalStates= BooleanVar()    
         #~ viewmenu.add_checkbutton(label="Hide Internal States", onvalue=True, offvalue=False, variable=self.doHideInternalStates)
@@ -544,7 +563,10 @@ class MainWindow:
     def scan(self):
         selected_rate=None
         self.listElements.delete(0,END)
-        for rate in searchRates:            
+        rates=searchRates
+        if self.doScanAll.get():
+            rates=searchAllRates
+        for rate in rates:            
             try:
                 self.open(rate)
             except SerialException,e:
