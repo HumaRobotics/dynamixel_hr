@@ -17,6 +17,7 @@ Dynamixel models supported
 At the moment it can handle the following models:
     * AX12*
     * AX18*
+    * MX12*
     * MX28*
     * MX64*
     * CM730
