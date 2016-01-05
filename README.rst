@@ -20,6 +20,7 @@ At the moment it can handle the following models:
     * MX12*
     * MX28*
     * MX64*
+    * RX64*
     * CM730
 
 Adding other models is very easy, have a look in :mod:`dxl.dxlmotors` and simply add the corresponding model class that will contain the definitions of registers and conversion functions.
