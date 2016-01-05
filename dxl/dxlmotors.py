@@ -194,3 +194,24 @@ class DxlMotorMX64(DxlMotorAXMX):
         self.registers["moving_speed"]=         DxlRegisterWord(0x20,'rw',range=[0,1023],tosi=self.speed_to_si,fromsi=self.si_to_speed)
         
         self.sort()
+  
+class DxlMotorRX64(DxlMotorAXMX):
+    __metaclass__=ModelRegisteringMetaclass
+    model_name="RX64"
+    model_number=64
+    documentation_url="http://support.robotis.com/en/product/dynamixel/rx_series/rx-64.htm"
+    tick_to_rad=0.00506145483078355577307870322862
+    tick_to_rpm=0.111
+
+    def __init__(self):
+        DxlMotorAXMX.__init__(self)
+
+        self.registers["cw_compliance_margin"]= DxlRegisterByte(0x1A,'rw')
+        self.registers["ccw_compliance_margin"]=DxlRegisterByte(0x1B,'rw')
+        self.registers["cw_compliance_slope"]=  DxlRegisterByte(0x1C,'rw')
+        self.registers["ccw_compliance_slope"]= DxlRegisterByte(0x1D,'rw')
+
+        self.registers["goal_pos"]=             DxlRegisterWord(0x1E,'rw',range=[0,1023],tosi=self.pos_to_si,fromsi=self.si_to_pos)
+        self.registers["moving_speed"]=         DxlRegisterWord(0x20,'rw',range=[0,1023],tosi=self.speed_to_si,fromsi=self.si_to_speed)
+
+        self.sort()
