@@ -141,7 +141,7 @@ class DxlMotorMX12W(DxlMotorAXMX):
     model_number=360
     documentation_url="http://support.robotis.com/en/product/dynamixel/mx_series/mx-12w.htm"
     tick_to_rad=0.00153588974175501002769284787627
-    tick_to_rpm=0.053
+    tick_to_rpm=0.114
 
     def __init__(self):
         DxlMotorAXMX.__init__(self)
@@ -161,7 +161,7 @@ class DxlMotorMX28(DxlMotorAXMX):
     model_number=29
     documentation_url="http://support.robotis.com/en/product/dynamixel/rx_series/mx-28.htm"    
     tick_to_rad=0.00153588974175501002769284787627
-    tick_to_rpm=0.053
+    tick_to_rpm=0.114
 
     def __init__(self):
         DxlMotorAXMX.__init__(self)
