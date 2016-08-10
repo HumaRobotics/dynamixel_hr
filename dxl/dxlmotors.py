@@ -166,9 +166,9 @@ class DxlMotorMX28(DxlMotorAXMX):
     def __init__(self):
         DxlMotorAXMX.__init__(self)
 
-        self.registers["p_gain"]=               DxlRegisterByte(0x1A,'rw')
+        self.registers["d_gain"]=               DxlRegisterByte(0x1A,'rw')
         self.registers["i_gain"]=               DxlRegisterByte(0x1B,'rw')
-        self.registers["d_gain"]=               DxlRegisterByte(0x1C,'rw')
+        self.registers["p_gain"]=               DxlRegisterByte(0x1C,'rw')
         
         self.registers["goal_pos"]=             DxlRegisterWord(0x1E,'rw',range=[0,4095],tosi=self.pos_to_si,fromsi=self.si_to_pos)
         self.registers["moving_speed"]=         DxlRegisterWord(0x20,'rw',range=[0,1023],tosi=self.speed_to_si,fromsi=self.si_to_speed)
