@@ -215,3 +215,23 @@ class DxlMotorRX64(DxlMotorAXMX):
         self.registers["moving_speed"]=         DxlRegisterWord(0x20,'rw',range=[0,1023],tosi=self.speed_to_si,fromsi=self.si_to_speed)
 
         self.sort()
+
+class DxlMotorMX106(DxlMotorAXMX):
+    __metaclass__=ModelRegisteringMetaclass
+    model_name="MX106"
+    model_number=320
+    documentation_url="http://support.robotis.com/en/product/dynamixel/mx_series/mx-106.htm"
+    tick_to_rad=0.00153588974175501002769284787627
+
+    def __init__(self):
+        DxlMotorAXMX.__init__(self)
+        
+        self.registers["d_gain"]=               DxlRegisterByte(0x1A,'rw')
+        self.registers["i_gain"]=               DxlRegisterByte(0x1B,'rw')
+        self.registers["p_gain"]=               DxlRegisterByte(0x1C,'rw')
+
+        self.registers["goal_pos"]=             DxlRegisterWord(0x1E,'rw',range=[0,4095],tosi=self.pos_to_si,fromsi=self.si_to_pos)
+        self.registers["moving_speed"]=         DxlRegisterWord(0x20,'rw',range=[0,1023])
+        
+        self.sort()
+
